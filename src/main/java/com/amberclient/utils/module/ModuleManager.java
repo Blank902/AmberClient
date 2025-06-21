@@ -1,9 +1,6 @@
 package com.amberclient.utils.module;
 
-import com.amberclient.modules.combat.AutoClicker;
-import com.amberclient.modules.combat.Hitbox;
-import com.amberclient.modules.combat.KillAura;
-import com.amberclient.modules.combat.Velocity;
+import com.amberclient.modules.combat.*;
 import com.amberclient.modules.hud.ActiveMods;
 import com.amberclient.modules.hud.Transparency;
 import com.amberclient.modules.minigames.MMFinder;
@@ -51,6 +48,7 @@ public class ModuleManager {
         registerModule(new AutoClutch());
         registerModule(new Velocity());
         registerModule(new NoHurtCam());
+        registerModule(new AimAssist());
     }
 
     public static ModuleManager getInstance() {

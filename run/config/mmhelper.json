@@ -1,5 +1,5 @@
 {
-  "enabled": true,
+  "enabled": false,
   "mm": {
     "highlightMurders": true,
     "innocentHighlightOptions": "AS_MURDER",
