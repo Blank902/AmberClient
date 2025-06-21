@@ -87,7 +87,22 @@ public class ModuleSettings {
         this.defaultValue = defaultValue;
     }
 
-    // Existing getters
+    public boolean isEnabled() {
+        if (type == SettingType.BOOLEAN) {
+            return (boolean) value;
+        }
+        throw new IllegalStateException("Setting is not a boolean and cannot be checked as enabled/disabled");
+    }
+
+    public void setBooleanValue(boolean value) {
+        if (type == SettingType.BOOLEAN) {
+            this.value = value;
+        } else {
+            throw new IllegalStateException("Setting is not a boolean");
+        }
+    }
+
+    // GETTERS
     public String getName() {
         return name;
     }
@@ -156,20 +171,7 @@ public class ModuleSettings {
         throw new IllegalStateException("Setting is not a set");
     }
 
-    public boolean isEnabled() {
-        if (type == SettingType.BOOLEAN) {
-            return (boolean) value;
-        }
-        throw new IllegalStateException("Setting is not a boolean and cannot be checked as enabled/disabled");
-    }
-
-    public void setBooleanValue(boolean value) {
-        if (type == SettingType.BOOLEAN) {
-            this.value = value;
-        } else {
-            throw new IllegalStateException("Setting is not a boolean");
-        }
-    }
+    // SETTERS
 
     public void setIntegerValue(int value) {
         if (type == SettingType.INTEGER) {

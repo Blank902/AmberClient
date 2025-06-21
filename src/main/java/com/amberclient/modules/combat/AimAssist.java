@@ -129,7 +129,7 @@ public class AimAssist extends Module implements ConfigurableModule {
     public void onEnable() {
         currentTarget = null;
         resetSmoothingVariables();
-        LOGGER.info("AimAssist enabled with enhanced smoothing");
+        LOGGER.info("AimAssist enabled");
     }
 
     @Override

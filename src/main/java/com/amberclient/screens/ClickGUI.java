@@ -40,6 +40,8 @@ public class ClickGUI extends Screen {
     private long clickTime = 0;
     private static final long CLICK_DURATION = 300;
 
+    private ModuleSettings openDropdown = null;
+
     public ClickGUI() {
         super(Text.literal("Amber Client - by @gqdThinky"));
         initCategories();
@@ -231,6 +233,36 @@ public class ClickGUI extends Screen {
                 int textWidth = textRenderer.getWidth(valueText);
                 int textX = Math.max(p.x + 10, p.x + p.width - 100 - textWidth - 5);
                 context.drawTextWithShadow(textRenderer, valueText, textX, setY + 11, TEXT);
+            } else if (s.getType() == ModuleSettings.SettingType.ENUM) {
+                Enum<?> currentValue = s.getEnumValue();
+                String displayText = currentValue.name();
+                int buttonX = p.x + p.width - 100;
+                int buttonY = setY + 10;
+                int buttonWidth = 80;
+                int buttonHeight = 20;
+
+                boolean isMouseOverButton = isMouseOver(mouseX, mouseY, buttonX, buttonY, buttonWidth, buttonHeight);
+
+                // Dessiner le bouton principal
+                context.fill(buttonX, buttonY, buttonX + buttonWidth, buttonY + buttonHeight,
+                        isMouseOverButton ? new Color(120, 120, 120).getRGB() : new Color(100, 100, 100).getRGB());
+                context.drawTextWithShadow(textRenderer, displayText, buttonX + 5, buttonY + 5, Color.WHITE.getRGB());
+                context.drawTextWithShadow(textRenderer, "▼", buttonX + buttonWidth - 15, buttonY + 5, Color.WHITE.getRGB());
+
+                // Afficher la liste déroulante si ce setting est ouvert
+                if (openDropdown == s) {
+                    Enum<?>[] enumValues = currentValue.getDeclaringClass().getEnumConstants();
+                    int optionY = buttonY + buttonHeight;
+                    for (Enum<?> enumValue : enumValues) {
+                        boolean optionHover = isMouseOver(mouseX, mouseY, buttonX, optionY, buttonWidth, 20);
+                        int optionColor = enumValue == currentValue ? ACCENT :
+                                (optionHover ? new Color(120, 120, 120).getRGB() : new Color(80, 80, 80).getRGB());
+                        context.fill(buttonX, optionY, buttonX + buttonWidth, optionY + 20, optionColor);
+                        drawBorder(context, buttonX, optionY, buttonWidth, 20);
+                        context.drawTextWithShadow(textRenderer, enumValue.name(), buttonX + 5, optionY + 5, Color.WHITE.getRGB());
+                        optionY += 20;
+                    }
+                }
             }
         }
 
@@ -268,7 +300,10 @@ public class ClickGUI extends Screen {
             PanelBounds p = calcConfigPanel();
             if (isMouseOver((int)mx, (int)my, p.x, p.y, p.width, p.height)) {
                 if (isMouseOver((int)mx, (int)my, p.x + p.width - 25, p.y + 5, 20, 20)) {
-                    configModule = null; configScroll = 0.0f; draggedSetting = null;
+                    configModule = null;
+                    configScroll = 0.0f;
+                    draggedSetting = null;
+                    openDropdown = null;
                     return true;
                 }
                 if (isMouseOver((int)mx, (int)my, p.x, p.y, p.width, 30)) {
@@ -296,6 +331,33 @@ public class ClickGUI extends Screen {
                         s.setDoubleValue(rawValue);
                         ((ConfigurableModule)configModule.module).onSettingChanged(s);
                         return true;
+                    } else if (s.getType() == ModuleSettings.SettingType.ENUM) {
+                        int buttonX = p.x + p.width - 100;
+                        int buttonY = setY + 10;
+                        int buttonWidth = 80;
+                        int buttonHeight = 20;
+
+                        // Clic sur le bouton principal
+                        if (isMouseOver((int)mx, (int)my, buttonX, buttonY, buttonWidth, buttonHeight)) {
+                            openDropdown = (openDropdown == s) ? null : s; // Toggle dropdown
+                            return true;
+                        }
+
+                        // Clic dans la liste déroulante si elle est ouverte
+                        if (openDropdown == s) {
+                            Enum<?> currentValue = s.getEnumValue();
+                            Enum<?>[] enumValues = currentValue.getDeclaringClass().getEnumConstants();
+                            int optionY = buttonY + buttonHeight;
+                            for (Enum<?> enumValue : enumValues) {
+                                if (isMouseOver((int)mx, (int)my, buttonX, optionY, buttonWidth, 20)) {
+                                    s.setEnumValue(enumValue);
+                                    ((ConfigurableModule)configModule.module).onSettingChanged(s);
+                                    openDropdown = null; // Fermer la dropdown après sélection
+                                    return true;
+                                }
+                                optionY += 20;
+                            }
+                        }
                     }
                 }
                 if (isMouseOver((int)mx, (int)my, p.x + p.width - 15, top, 5, p.height - 50)) {
@@ -424,7 +486,10 @@ public class ClickGUI extends Screen {
 
     @Override
     public void close() {
-        configModule = null; configScroll = 0.0f; draggedSetting = null;
+        configModule = null;
+        configScroll = 0.0f;
+        draggedSetting = null;
+        openDropdown = null;
         super.close();
     }
 
