@@ -38,11 +38,12 @@ public class AimAssist extends Module implements ConfigurableModule {
 
     // Settings - Aim Speed
     private final ModuleSettings instantLook = new ModuleSettings("Instant Look", "Instantly looks at the entity", false);
-    private final ModuleSettings aimSpeed = new ModuleSettings("Aim Speed", "How fast to aim at the entity", 5.0, 0.1, 20.0, 0.1);
+    private final ModuleSettings aimSpeed = new ModuleSettings("Aim Speed", "Base aim speed multiplier", 3.5, 0.1, 15.0, 0.1);
 
     // Settings - Advanced
-    private final ModuleSettings smoothing = new ModuleSettings("Smoothing", "Enable aim smoothing for more natural movement", true);
-    private final ModuleSettings maxRotationPerTick = new ModuleSettings("Max Rotation", "Maximum rotation per tick (degrees)", 30.0, 1.0, 180.0, 1.0);
+    private final ModuleSettings smoothingIntensity = new ModuleSettings("Smoothing Intensity", "How smooth the aim movement is", 0.75, 0.1, 2.0, 0.05);
+    private final ModuleSettings maxRotationPerTick = new ModuleSettings("Max Rotation", "Maximum rotation per tick (degrees)", 25.0, 1.0, 90.0, 1.0);
+    private final ModuleSettings accelerationFactor = new ModuleSettings("Acceleration", "How quickly aim accelerates", 1.2, 0.5, 3.0, 0.1);
 
     private final MinecraftClient mc = getClient();
     private final Vector3d targetPos = new Vector3d();
@@ -50,6 +51,12 @@ public class AimAssist extends Module implements ConfigurableModule {
     private final Set<EntityType<?>> hostileEntities = new HashSet<>();
     private final Set<EntityType<?>> neutralEntities = new HashSet<>();
     private final Set<EntityType<?>> passiveEntities = new HashSet<>();
+
+    private float lastYawDelta = 0.0f;
+    private float lastPitchDelta = 0.0f;
+    private double currentYawVelocity = 0.0;
+    private double currentPitchVelocity = 0.0;
+    private int ticksSinceTargetChange = 0;
 
     public enum SortPriority {
         CLOSEST,
@@ -65,7 +72,7 @@ public class AimAssist extends Module implements ConfigurableModule {
     }
 
     public AimAssist() {
-        super("Aim Assist", "Automatically aims at nearby entities", "Combat");
+        super("Aim Assist", "Automatically aims at nearby entities with smooth movement", "Combat");
 
         initializeEntitySets();
 
@@ -79,14 +86,13 @@ public class AimAssist extends Module implements ConfigurableModule {
     @Override
     public List<ModuleSettings> getSettings() {
         return Arrays.asList(
-                // General
                 range, fov, ignoreWalls, priority, bodyTarget,
-                // Entities
+
                 targetsPlayers, targetsMobs,
-                // Aim Speed
+
                 instantLook, aimSpeed,
-                // Advanced
-                smoothing, maxRotationPerTick
+
+                smoothingIntensity, maxRotationPerTick, accelerationFactor
         );
     }
 
@@ -122,23 +128,41 @@ public class AimAssist extends Module implements ConfigurableModule {
     @Override
     public void onEnable() {
         currentTarget = null;
-        LOGGER.info("AimAssist enabled");
+        resetSmoothingVariables();
+        LOGGER.info("AimAssist enabled with enhanced smoothing");
     }
 
     @Override
     public void onDisable() {
         currentTarget = null;
+        resetSmoothingVariables();
         LOGGER.info("AimAssist disabled");
+    }
+
+    private void resetSmoothingVariables() {
+        lastYawDelta = 0.0f;
+        lastPitchDelta = 0.0f;
+        currentYawVelocity = 0.0;
+        currentPitchVelocity = 0.0;
+        ticksSinceTargetChange = 0;
     }
 
     @Override
     public void onTick() {
         if (mc.player == null || mc.world == null) return;
 
+        Entity previousTarget = currentTarget;
         currentTarget = findTarget();
+
+        if (currentTarget != previousTarget) {
+            resetSmoothingVariables();
+        }
 
         if (currentTarget != null) {
             aimAtTarget(currentTarget);
+            ticksSinceTargetChange++;
+        } else {
+            applyDeceleration();
         }
     }
 
@@ -265,43 +289,86 @@ public class AimAssist extends Module implements ConfigurableModule {
         if (instantLook.getBooleanValue()) {
             mc.player.setYaw((float) targetYaw);
             mc.player.setPitch((float) targetPitch);
+            resetSmoothingVariables();
         } else {
-            applyProgressiveRotation(targetYaw, targetPitch);
+            applyAdvancedSmoothRotation(targetYaw, targetPitch);
         }
     }
 
-    private void applyProgressiveRotation(double targetYaw, double targetPitch) {
+    private void applyAdvancedSmoothRotation(double targetYaw, double targetPitch) {
         float currentYaw = mc.player.getYaw();
         float currentPitch = mc.player.getPitch();
 
         double deltaYaw = MathHelper.wrapDegrees(targetYaw - currentYaw);
         double deltaPitch = MathHelper.wrapDegrees(targetPitch - currentPitch);
 
-        double speed = aimSpeed.getDoubleValue();
+        double baseSpeed = aimSpeed.getDoubleValue();
+        double smoothing = smoothingIntensity.getDoubleValue();
+        double acceleration = accelerationFactor.getDoubleValue();
         double maxRotation = maxRotationPerTick.getDoubleValue();
 
-        double yawStep = Math.min(Math.abs(deltaYaw), Math.min(speed, maxRotation)) * Math.signum(deltaYaw);
-        double pitchStep = Math.min(Math.abs(deltaPitch), Math.min(speed, maxRotation)) * Math.signum(deltaPitch);
+        double accelerationMultiplier = Math.min(1.0, (ticksSinceTargetChange * 0.1) * acceleration);
 
-        if (smoothing.getBooleanValue()) {
-            double yawDistance = Math.abs(deltaYaw);
-            double pitchDistance = Math.abs(deltaPitch);
+        double yawDistance = Math.abs(deltaYaw);
+        double pitchDistance = Math.abs(deltaPitch);
 
-            if (yawDistance < 10) {
-                yawStep *= (yawDistance / 10.0) * 0.5 + 0.5;
-            }
-            if (pitchDistance < 10) {
-                pitchStep *= (pitchDistance / 10.0) * 0.5 + 0.5;
-            }
-        }
+        double yawSpeedFactor = calculateSpeedFactor(yawDistance);
+        double pitchSpeedFactor = calculateSpeedFactor(pitchDistance);
+
+        double targetYawVelocity = Math.min(yawDistance * yawSpeedFactor * baseSpeed * accelerationMultiplier, maxRotation);
+        double targetPitchVelocity = Math.min(pitchDistance * pitchSpeedFactor * baseSpeed * accelerationMultiplier, maxRotation);
+
+        currentYawVelocity = lerp(currentYawVelocity, targetYawVelocity, smoothing);
+        currentPitchVelocity = lerp(currentPitchVelocity, targetPitchVelocity, smoothing);
+
+        double yawStep = Math.min(Math.abs(deltaYaw), currentYawVelocity) * Math.signum(deltaYaw);
+        double pitchStep = Math.min(Math.abs(deltaPitch), currentPitchVelocity) * Math.signum(deltaPitch);
+
+        yawStep += (Math.random() - 0.5) * 0.1 * smoothing;
+        pitchStep += (Math.random() - 0.5) * 0.1 * smoothing;
 
         mc.player.setYaw(currentYaw + (float) yawStep);
         mc.player.setPitch(MathHelper.clamp(currentPitch + (float) pitchStep, -90f, 90f));
+
+        lastYawDelta = (float) yawStep;
+        lastPitchDelta = (float) pitchStep;
+    }
+
+    private double calculateSpeedFactor(double distance) {
+        if (distance > 45) {
+            return 1.0;
+        } else if (distance > 15) {
+            return 0.8;
+        } else if (distance > 5) {
+            return 0.4;
+        } else {
+            return 0.2;
+        }
+    }
+
+    private void applyDeceleration() {
+        currentYawVelocity *= 0.85;
+        currentPitchVelocity *= 0.85;
+
+        if (Math.abs(currentYawVelocity) > 0.1 || Math.abs(currentPitchVelocity) > 0.1) {
+            float currentYaw = mc.player.getYaw();
+            float currentPitch = mc.player.getPitch();
+
+            mc.player.setYaw(currentYaw + (float) (currentYawVelocity * Math.signum(lastYawDelta)));
+            mc.player.setPitch(MathHelper.clamp(currentPitch + (float) (currentPitchVelocity * Math.signum(lastPitchDelta)), -90f, 90f));
+        }
+    }
+
+    private double lerp(double start, double end, double factor) {
+        return start + (end - start) * factor;
     }
 
     private void calculateTargetPosition(Entity target) {
         Vec3d velocity = target.getVelocity();
-        Vec3d predictedPos = target.getPos().add(velocity.multiply(2));
+
+        double distance = mc.player.distanceTo(target);
+        double predictionTime = distance / 20.0;
+        Vec3d predictedPos = target.getPos().add(velocity.multiply(predictionTime));
 
         targetPos.set(predictedPos.x, predictedPos.y, predictedPos.z);
 

@@ -5,8 +5,15 @@
     },
     "done": true
   },
+  "minecraft:recipes/misc/mojang_banner_pattern": {
+    "criteria": {
+      "has_enchanted_golden_apple": "2025-06-12 23:54:49 +0200"
+    },
+    "done": true
+  },
   "minecraft:adventure/adventuring_time": {
     "criteria": {
+      "minecraft:sparse_jungle": "2025-06-21 21:55:01 +0200",
       "minecraft:plains": "2025-06-12 23:54:50 +0200"
     },
     "done": false
@@ -20,12 +27,6 @@
   "minecraft:husbandry/root": {
     "criteria": {
       "consumed_item": "2025-06-12 23:55:21 +0200"
-    },
-    "done": true
-  },
-  "minecraft:recipes/misc/mojang_banner_pattern": {
-    "criteria": {
-      "has_enchanted_golden_apple": "2025-06-12 23:54:49 +0200"
     },
     "done": true
   },
