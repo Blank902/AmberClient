@@ -1,5 +1,6 @@
 package com.amberclient.modules.combat;
 
+import com.amberclient.utils.general.MinecraftUtils;
 import com.amberclient.utils.module.ConfigurableModule;
 import com.amberclient.utils.module.Module;
 import com.amberclient.utils.module.ModuleSettings;
@@ -15,9 +16,7 @@ import org.apache.logging.log4j.Logger;
 import org.joml.Vector3d;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 public class AimAssist extends Module implements ConfigurableModule {
@@ -48,9 +47,6 @@ public class AimAssist extends Module implements ConfigurableModule {
     private final MinecraftClient mc = getClient();
     private final Vector3d targetPos = new Vector3d();
     private Entity currentTarget;
-    private final Set<EntityType<?>> hostileEntities = new HashSet<>();
-    private final Set<EntityType<?>> neutralEntities = new HashSet<>();
-    private final Set<EntityType<?>> passiveEntities = new HashSet<>();
 
     private float lastYawDelta = 0.0f;
     private float lastPitchDelta = 0.0f;
@@ -76,8 +72,6 @@ public class AimAssist extends Module implements ConfigurableModule {
     public AimAssist() {
         super("Aim Assist", "Automatically aims at nearby entities", "Combat");
 
-        initializeEntitySets();
-
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (this.isEnabled()) {
                 onTick();
@@ -96,35 +90,6 @@ public class AimAssist extends Module implements ConfigurableModule {
 
                 smoothingIntensity, maxRotationPerTick, accelerationFactor
         );
-    }
-
-    private void initializeEntitySets() {
-        hostileEntities.addAll(Arrays.asList(
-                EntityType.ZOMBIE, EntityType.SKELETON, EntityType.CREEPER, EntityType.SPIDER,
-                EntityType.ENDERMAN, EntityType.WITCH, EntityType.BLAZE, EntityType.GHAST,
-                EntityType.WITHER_SKELETON, EntityType.STRAY, EntityType.HUSK, EntityType.DROWNED,
-                EntityType.PHANTOM, EntityType.PILLAGER, EntityType.VINDICATOR, EntityType.EVOKER,
-                EntityType.RAVAGER, EntityType.VEX, EntityType.GUARDIAN, EntityType.ELDER_GUARDIAN,
-                EntityType.SHULKER, EntityType.SILVERFISH, EntityType.ENDERMITE, EntityType.CAVE_SPIDER,
-                EntityType.SLIME, EntityType.MAGMA_CUBE, EntityType.ZOMBIFIED_PIGLIN, EntityType.PIGLIN_BRUTE,
-                EntityType.HOGLIN, EntityType.ZOGLIN, EntityType.WARDEN
-        ));
-
-        neutralEntities.addAll(Arrays.asList(
-                EntityType.IRON_GOLEM, EntityType.SNOW_GOLEM, EntityType.WOLF, EntityType.LLAMA,
-                EntityType.PIGLIN, EntityType.ZOMBIFIED_PIGLIN, EntityType.PANDA, EntityType.BEE,
-                EntityType.DOLPHIN, EntityType.POLAR_BEAR
-        ));
-
-        passiveEntities.addAll(Arrays.asList(
-                EntityType.COW, EntityType.SHEEP, EntityType.PIG, EntityType.CHICKEN,
-                EntityType.RABBIT, EntityType.VILLAGER, EntityType.HORSE, EntityType.DONKEY,
-                EntityType.MULE, EntityType.CAT, EntityType.OCELOT, EntityType.PARROT,
-                EntityType.BAT, EntityType.SQUID, EntityType.MOOSHROOM, EntityType.TURTLE,
-                EntityType.COD, EntityType.SALMON, EntityType.PUFFERFISH, EntityType.TROPICAL_FISH,
-                EntityType.AXOLOTL, EntityType.GLOW_SQUID, EntityType.GOAT, EntityType.ALLAY,
-                EntityType.FROG, EntityType.TADPOLE, EntityType.CAMEL, EntityType.SNIFFER
-        ));
     }
 
     @Override
@@ -222,7 +187,7 @@ public class AimAssist extends Module implements ConfigurableModule {
             return targetsPlayers.getBooleanValue();
         }
 
-        if (hostileEntities.contains(type) || neutralEntities.contains(type) || passiveEntities.contains(type)) {
+        if (MinecraftUtils.isMob(type)) {
             return targetsMobs.getBooleanValue();
         }
 
