@@ -11,7 +11,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.util.*
 
-class EntityESP : Module("Entity ESP", "Display outlines around entity models (players & mobs)", "Render"), ConfigurableModule {
+class EntityESP : Module("EntityESP", "Display outlines around entity models (players & mobs)", "Render"), ConfigurableModule {
     companion object {
         const val MOD_ID = "amberclient-entityesp"
         val LOGGER: Logger = LogManager.getLogger(MOD_ID)

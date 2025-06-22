@@ -23,7 +23,7 @@ public class Xray extends Module implements ConfigurableModule {
     private final List<ModuleSettings> settings;
 
     public Xray() {
-        super("X-Ray", "Shows the outlines of the selected ores in the chunk", "Render");
+        super("XRay", "Shows the outlines of the selected ores in the chunk", "Render");
 
         // Initialize settings
         exposedOnly = new ModuleSettings("Exposed Only", "Show only ores exposed to air/surface", false);

@@ -34,7 +34,7 @@ public class MMFinder extends Module implements ConfigurableModule {
     private final ModuleSettings highlightSpectators;
 
     public MMFinder() {
-        super("Murderer Finder", "Find the murderer in Hypixel's Murder Mystery", "Mini-games");
+        super("MurdererFinder", "Find the murderer in Hypixel's Murder Mystery", "Mini-games");
 
         // Initialize settings with values from Config
         Config config = ConfigManager.getConfig();

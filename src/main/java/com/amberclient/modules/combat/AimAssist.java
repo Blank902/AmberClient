@@ -70,7 +70,7 @@ public class AimAssist extends Module implements ConfigurableModule {
     }
 
     public AimAssist() {
-        super("Aim Assist", "Automatically aims at nearby entities", "Combat");
+        super("AimAssist", "Automatically aims at nearby entities", "Combat");
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (this.isEnabled()) {
@@ -198,6 +198,7 @@ public class AimAssist extends Module implements ConfigurableModule {
         double fovValue = fov.getDoubleValue();
         if (fovValue >= 360) return true;
 
+        assert mc.player != null;
         Vec3d playerPos = mc.player.getPos().add(0, mc.player.getEyeHeight(mc.player.getPose()), 0);
         Vec3d entityPos = entity.getPos().add(0, entity.getHeight() / 2, 0);
 
