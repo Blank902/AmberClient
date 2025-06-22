@@ -59,6 +59,7 @@ public class AimAssist extends Module implements ConfigurableModule {
     private int ticksSinceTargetChange = 0;
 
     public enum SortPriority {
+        NONE,
         CLOSEST,
         LOWEST_HEALTH,
         HIGHEST_HEALTH,
@@ -66,6 +67,7 @@ public class AimAssist extends Module implements ConfigurableModule {
     }
 
     public enum TargetPart {
+        NONE,
         HEAD,
         BODY,
         FEET
@@ -128,18 +130,18 @@ public class AimAssist extends Module implements ConfigurableModule {
     @Override
     public void onEnable() {
         currentTarget = null;
-        resetSmoothingVariables();
+        resetSmoothingVars();
         LOGGER.info("AimAssist enabled");
     }
 
     @Override
     public void onDisable() {
         currentTarget = null;
-        resetSmoothingVariables();
+        resetSmoothingVars();
         LOGGER.info("AimAssist disabled");
     }
 
-    private void resetSmoothingVariables() {
+    private void resetSmoothingVars() {
         lastYawDelta = 0.0f;
         lastPitchDelta = 0.0f;
         currentYawVelocity = 0.0;
@@ -155,7 +157,7 @@ public class AimAssist extends Module implements ConfigurableModule {
         currentTarget = findTarget();
 
         if (currentTarget != previousTarget) {
-            resetSmoothingVariables();
+            resetSmoothingVars();
         }
 
         if (currentTarget != null) {
@@ -260,6 +262,7 @@ public class AimAssist extends Module implements ConfigurableModule {
         SortPriority priorityValue = priority.getEnumValue();
 
         return switch (priorityValue) {
+            case NONE -> 0.0;
             case CLOSEST -> distance;
             case LOWEST_HEALTH -> entity instanceof LivingEntity living ? living.getHealth() : Double.MAX_VALUE;
             case HIGHEST_HEALTH -> entity instanceof LivingEntity living ? -living.getHealth() : Double.MAX_VALUE;
@@ -289,7 +292,7 @@ public class AimAssist extends Module implements ConfigurableModule {
         if (instantLook.getBooleanValue()) {
             mc.player.setYaw((float) targetYaw);
             mc.player.setPitch((float) targetPitch);
-            resetSmoothingVariables();
+            resetSmoothingVars();
         } else {
             applyAdvancedSmoothRotation(targetYaw, targetPitch);
         }
@@ -374,6 +377,7 @@ public class AimAssist extends Module implements ConfigurableModule {
 
         TargetPart targetPart = bodyTarget.getEnumValue();
         switch (targetPart) {
+            case NONE -> { /* nothing lol */ }
             case HEAD -> targetPos.add(0, target.getHeight() * 0.9, 0);
             case BODY -> targetPos.add(0, target.getHeight() * 0.5, 0);
             case FEET -> targetPos.add(0, target.getHeight() * 0.1, 0);
