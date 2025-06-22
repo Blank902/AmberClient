@@ -146,7 +146,7 @@ public class ClickGUI extends Screen {
 
     private void renderModules(DrawContext context, int x, int y, int w, int h, int mouseX, int mouseY, float trans) {
         if (selectedCat < 0 || selectedCat >= categories.size()) return;
-        Category cat = categories.get(selectedCat);
+        Category cat = categories.get(selectedCat); // meow
         context.drawTextWithShadow(textRenderer, cat.name.toUpperCase(), x, y + 10, ACCENT);
 
         // Add warning for COMBAT category
@@ -156,7 +156,7 @@ public class ClickGUI extends Screen {
 
         int top = y + 30, areaH = h - 40;
         if (cat.name.equalsIgnoreCase("COMBAT")) {
-            top += 15; // Adjust position to avoid overlap with warning
+            top += 15;
         }
         context.enableScissor(x, top, x + w, top + areaH);
 
@@ -337,13 +337,11 @@ public class ClickGUI extends Screen {
                         int buttonWidth = 80;
                         int buttonHeight = 20;
 
-                        // Clic sur le bouton principal
                         if (isMouseOver((int)mx, (int)my, buttonX, buttonY, buttonWidth, buttonHeight)) {
-                            openDropdown = (openDropdown == s) ? null : s; // Toggle dropdown
+                            openDropdown = (openDropdown == s) ? null : s;
                             return true;
                         }
 
-                        // Clic dans la liste déroulante si elle est ouverte
                         if (openDropdown == s) {
                             Enum<?> currentValue = s.getEnumValue();
                             Enum<?>[] enumValues = currentValue.getDeclaringClass().getEnumConstants();
@@ -352,7 +350,7 @@ public class ClickGUI extends Screen {
                                 if (isMouseOver((int)mx, (int)my, buttonX, optionY, buttonWidth, 20)) {
                                     s.setEnumValue(enumValue);
                                     ((ConfigurableModule)configModule.module).onSettingChanged(s);
-                                    openDropdown = null; // Fermer la dropdown après sélection
+                                    openDropdown = null;
                                     return true;
                                 }
                                 optionY += 20;
@@ -381,6 +379,10 @@ public class ClickGUI extends Screen {
         List<ModuleWrapper> mods = categories.get(selectedCat).modules;
         int modX = p.x + 160, modY = p.y + 30, modW = p.width - 190, modH = 30;
         int moduleAreaWidth = p.width - 160;
+
+        if (categories.get(selectedCat).name.equalsIgnoreCase("COMBAT")) {
+            modY += 15;
+        }
         for (int i = 0; i < mods.size(); i++) {
             ModuleWrapper m = mods.get(i);
             int y = modY + i * (modH + sp) - (int)mainScroll;

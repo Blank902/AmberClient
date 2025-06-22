@@ -74,7 +74,7 @@ public class AimAssist extends Module implements ConfigurableModule {
     }
 
     public AimAssist() {
-        super("Aim Assist", "Automatically aims at nearby entities with smooth movement", "Combat");
+        super("Aim Assist", "Automatically aims at nearby entities", "Combat");
 
         initializeEntitySets();
 
