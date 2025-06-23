@@ -1,5 +1,6 @@
 package com.amberclient.modules.render.xray;
 
+import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
@@ -59,7 +60,7 @@ public class ScanTask implements Runnable {
         ClientPlayerEntity clientPlayer = (ClientPlayerEntity) player;
         if (!SettingsStore.getInstance().get().isActive()) return;
         if (renderQueue.stream().anyMatch(e -> e.pos().equals(blockPos))) {
-            runTask(clientPlayer.getChunkPos(), SettingsStore.getInstance().get().getHalfRange(), true); // Force le scan
+            runTask(clientPlayer.getChunkPos(), SettingsStore.getInstance().get().getHalfRange(), true);
         }
     }
 
@@ -80,7 +81,7 @@ public class ScanTask implements Runnable {
         renderQueue.clear();
         renderQueue.addAll(blocks);
         isScanning.set(false);
-        RenderOutlines.requestedRefresh.set(true);
+        RenderOutlines.requestedRefresh.set(true); // Ensure refresh is triggered
     }
 
     private Set<BlockPosWithColor> collectBlocks() {
@@ -117,7 +118,7 @@ public class ScanTask implements Runnable {
                             BlockPos pos = new BlockPos(k, m, l);
                             BasicColor color = isValidBlock(pos, world, blocks);
                             if (color != null) {
-                                if (!exposedOnly || isBlockExposedAndNearSurface(pos, world)) {
+                                if (!exposedOnly || isBlockExposed(pos, world)) {
                                     renderQueue.add(new BlockPosWithColor(pos, color));
                                 }
                             }
@@ -134,6 +135,10 @@ public class ScanTask implements Runnable {
         BlockState state = world.getBlockState(pos);
         if (state.isAir()) {
             return null;
+        }
+
+        if (SettingsStore.getInstance().get().isShowLava() && state.getBlock() == Blocks.LAVA) {
+            return new BasicColor(255, 69, 0);
         }
 
         BlockState defaultState = state.getBlock().getDefaultState();
@@ -159,9 +164,39 @@ public class ScanTask implements Runnable {
 
         for (BlockPos adjacentPos : adjacentPositions) {
             BlockState adjacentState = world.getBlockState(adjacentPos);
-            if (adjacentState.isAir() || !adjacentState.isOpaque()) {
+
+            if (adjacentState.isAir() ||
+                    !adjacentState.isOpaque() ||
+                    adjacentState.getFluidState().isEmpty() == false ||
+                    isNaturalCavity(adjacentPos, world)) {
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    private boolean isNaturalCavity(BlockPos pos, World world) {
+        BlockState state = world.getBlockState(pos);
+
+        if (state.isAir()) {
+            int airCount = 0;
+            int checkRadius = 2;
+
+            for (int x = -checkRadius; x <= checkRadius; x++) {
+                for (int y = -checkRadius; y <= checkRadius; y++) {
+                    for (int z = -checkRadius; z <= checkRadius; z++) {
+                        if (x == 0 && y == 0 && z == 0) continue;
+
+                        BlockPos checkPos = pos.add(x, y, z);
+                        if (world.getBlockState(checkPos).isAir()) {
+                            airCount++;
+                        }
+                    }
+                }
+            }
+
+            return airCount > (checkRadius * 2 + 1) * (checkRadius * 2 + 1) * (checkRadius * 2 + 1) * 0.3;
         }
 
         return false;

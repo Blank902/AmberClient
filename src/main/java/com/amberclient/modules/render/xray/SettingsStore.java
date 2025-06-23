@@ -22,6 +22,7 @@ public class SettingsStore {
     public static class StateSettings {
         private boolean active = false;
         private boolean exposedOnly = false;
+        private boolean showLava = false;
         private int halfRange = 4;
 
         public boolean isActive() {
@@ -33,7 +34,11 @@ public class SettingsStore {
         }
 
         public boolean isShowLava() {
-            return true;
+            return showLava;
+        }
+
+        public void setShowLava(boolean showLava) {
+            this.showLava = showLava;
         }
 
         public boolean isExposedOnly() {
