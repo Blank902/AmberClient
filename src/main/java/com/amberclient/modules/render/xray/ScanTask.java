@@ -17,46 +17,41 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ScanTask implements Runnable {
     public static Set<BlockPosWithColor> renderQueue = Collections.synchronizedSet(new HashSet<>());
-    private static AtomicBoolean isScanning = new AtomicBoolean(false);
+    private static final AtomicBoolean isScanning = new AtomicBoolean(false);
     private static ChunkPos playerLastChunk;
-    private final boolean fullScan;
-    private final ChunkPos singleChunk;
+    private static boolean forceNextScan = false;
+    private final ChunkPos centerChunk;
+    private final int range;
 
-    public ScanTask() {
-        this.fullScan = true;
-        this.singleChunk = null;
+    public ScanTask(ChunkPos centerChunk, int range) {
+        this.centerChunk = centerChunk;
+        this.range = range;
     }
 
-    public ScanTask(ChunkPos chunkPos) {
-        this.fullScan = false;
-        this.singleChunk = chunkPos;
+    public static void runTask(ChunkPos centerChunk, int range) {
+        runTask(centerChunk, range, false);
     }
 
-    public static void runTask(boolean forceRerun) {
+    public static void runTask(ChunkPos centerChunk, int range, boolean forceScan) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null || client.world == null || !SettingsStore.getInstance().get().isActive()) {
             return;
         }
 
-        if (!forceRerun && !playerLocationChanged(client.player)) {
-            return;
+        if (forceScan || forceNextScan || playerLocationChanged(client.player, centerChunk, range) || playerLastChunk == null) {
+            playerLastChunk = centerChunk;
+            forceNextScan = false; // Reset le flag après utilisation
+            client.execute(new ScanTask(centerChunk, range));
         }
-
-        playerLastChunk = client.player.getChunkPos();
-        client.execute(new ScanTask());
     }
 
-    public static void runTaskForSingleChunk(ChunkPos chunkPos) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player == null || client.world == null || !SettingsStore.getInstance().get().isActive()) {
-            return;
-        }
+    public static void requestForcedScan() {
+        forceNextScan = true;
+    }
 
-        if (!client.world.isChunkLoaded(chunkPos.x, chunkPos.z)) {
-            return;
-        }
-
-        client.execute(new ScanTask(chunkPos));
+    public static void resetLocationTracking() {
+        playerLastChunk = null;
+        forceNextScan = true;
     }
 
     public static void blockBroken(World world, PlayerEntity player, BlockPos blockPos, BlockState blockState, BlockEntity blockEntity) {
@@ -64,16 +59,14 @@ public class ScanTask implements Runnable {
         ClientPlayerEntity clientPlayer = (ClientPlayerEntity) player;
         if (!SettingsStore.getInstance().get().isActive()) return;
         if (renderQueue.stream().anyMatch(e -> e.pos().equals(blockPos))) {
-            runTask(true);
+            runTask(clientPlayer.getChunkPos(), SettingsStore.getInstance().get().getHalfRange(), true); // Force le scan
         }
     }
 
-    private static boolean playerLocationChanged(ClientPlayerEntity player) {
-        ChunkPos plyChunkPos = player.getChunkPos();
-        int range = SettingsStore.getInstance().get().getHalfRange();
+    private static boolean playerLocationChanged(ClientPlayerEntity player, ChunkPos currentChunk, int range) {
         return playerLastChunk == null ||
-                plyChunkPos.x > playerLastChunk.x + range || plyChunkPos.x < playerLastChunk.x - range ||
-                plyChunkPos.z > playerLastChunk.z + range || plyChunkPos.z < playerLastChunk.z - range;
+                currentChunk.x > playerLastChunk.x + range || currentChunk.x < playerLastChunk.x - range ||
+                currentChunk.z > playerLastChunk.z + range || currentChunk.z < playerLastChunk.z - range;
     }
 
     @Override
@@ -83,7 +76,7 @@ public class ScanTask implements Runnable {
         }
 
         isScanning.set(true);
-        Set<BlockPosWithColor> blocks = fullScan ? collectBlocks() : collectBlocksForSingleChunk();
+        Set<BlockPosWithColor> blocks = collectBlocks();
         renderQueue.clear();
         renderQueue.addAll(blocks);
         isScanning.set(false);
@@ -105,9 +98,9 @@ public class ScanTask implements Runnable {
         }
 
         final Set<BlockPosWithColor> renderQueue = new HashSet<>();
-        int cX = player.getChunkPos().x;
-        int cZ = player.getChunkPos().z;
-        int range = SettingsStore.getInstance().get().getHalfRange();
+        int cX = centerChunk.x;
+        int cZ = centerChunk.z;
+
         boolean exposedOnly = SettingsStore.getInstance().get().isExposedOnly();
 
         for (int i = cX - range; i <= cX + range; i++) {
@@ -128,43 +121,6 @@ public class ScanTask implements Runnable {
                                     renderQueue.add(new BlockPosWithColor(pos, color));
                                 }
                             }
-                        }
-                    }
-                }
-            }
-        }
-
-        return renderQueue;
-    }
-
-    private Set<BlockPosWithColor> collectBlocksForSingleChunk() {
-        Set<BlockSearchEntry> blocks = BlockStore.getInstance().getCache().get();
-        if (blocks.isEmpty()) {
-            return new HashSet<>();
-        }
-
-        MinecraftClient instance = MinecraftClient.getInstance();
-        final World world = instance.world;
-        final ClientPlayerEntity player = instance.player;
-
-        if (world == null || player == null) {
-            return new HashSet<>();
-        }
-
-        final Set<BlockPosWithColor> renderQueue = new HashSet<>();
-        int chunkStartX = singleChunk.x << 4;
-        int chunkStartZ = singleChunk.z << 4;
-        boolean exposedOnly = SettingsStore.getInstance().get().isExposedOnly();
-
-        for (int k = chunkStartX; k < chunkStartX + 16; k++) {
-            for (int l = chunkStartZ; l < chunkStartZ + 16; l++) {
-                int topY = world.getTopY(Heightmap.Type.WORLD_SURFACE, k, l);
-                for (int m = world.getBottomY(); m < topY; m++) {
-                    BlockPos pos = new BlockPos(k, m, l);
-                    BasicColor color = isValidBlock(pos, world, blocks);
-                    if (color != null) {
-                        if (!exposedOnly || isBlockExposedAndNearSurface(pos, world)) {
-                            renderQueue.add(new BlockPosWithColor(pos, color));
                         }
                     }
                 }

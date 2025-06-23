@@ -1,8 +1,6 @@
 package com.amberclient.utils.general;
 
-import com.amberclient.mixins.client.MinecraftServerAccessor;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 
 import java.io.File;

@@ -17,38 +17,49 @@ public class Xray extends Module implements ConfigurableModule {
     public static final String MOD_ID = "amberclient-xray";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     private ChunkPos lastPlayerChunk;
+    private boolean wasActive = false; // Track previous active state
 
     // Settings
     private final ModuleSettings exposedOnly;
+    private final ModuleSettings chunkRange;
     private final List<ModuleSettings> settings;
 
     public Xray() {
         super("XRay", "Shows the outlines of the selected ores in the chunk", "Render");
 
         // Initialize settings
-        exposedOnly = new ModuleSettings("Exposed Only", "Show only ores exposed to air/surface", false);
+        exposedOnly = new ModuleSettings("Exposed Only", "Show only ores exposed to air", false);
+        chunkRange = new ModuleSettings("Chunk Range", "Number of chunks to scan around the player", 2.0, 1.0, 8.0, 1.0);
 
         settings = new ArrayList<>();
         settings.add(exposedOnly);
+        settings.add(chunkRange);
 
-        // Register events
         WorldRenderEvents.AFTER_TRANSLUCENT.register(RenderOutlines::render);
-        LOGGER.info("XRay module initialized");
     }
 
     @Override
     public void onEnable() {
         SettingsStore.getInstance().get().setActive(true);
-        // Update the exposed only setting in the settings store
         SettingsStore.getInstance().get().setExposedOnly(exposedOnly.getBooleanValue());
-        // Perform a full scan of the area on activation
-        ScanTask.runTask(true);
+        SettingsStore.getInstance().get().setHalfRange((int) chunkRange.getDoubleValue());
+
+        ScanTask.resetLocationTracking();
+
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player != null) {
+            ScanTask.runTask(client.player.getChunkPos(), SettingsStore.getInstance().get().getHalfRange(), true);
+            lastPlayerChunk = null;
+        }
+        wasActive = true;
     }
 
     @Override
     public void onDisable() {
         SettingsStore.getInstance().get().setActive(false);
         ScanTask.renderQueue.clear();
+        lastPlayerChunk = null;
+        wasActive = false;
     }
 
     @Override
@@ -58,11 +69,10 @@ public class Xray extends Module implements ConfigurableModule {
             if (client.player == null) return;
 
             ChunkPos currentChunk = client.player.getChunkPos();
-
-            // Check if the player has changed chunk
-            if (!currentChunk.equals(lastPlayerChunk)) {
-                ScanTask.runTaskForSingleChunk(currentChunk);
+            if (lastPlayerChunk == null || !currentChunk.equals(lastPlayerChunk) || !wasActive) {
+                ScanTask.runTask(currentChunk, SettingsStore.getInstance().get().getHalfRange());
                 lastPlayerChunk = currentChunk;
+                wasActive = true;
             }
         }
     }
@@ -75,10 +85,7 @@ public class Xray extends Module implements ConfigurableModule {
     @Override
     public void onSettingChanged(ModuleSettings setting) {
         if (setting == exposedOnly) {
-            // Update the settings store with the new value
             SettingsStore.getInstance().get().setExposedOnly(exposedOnly.getBooleanValue());
-
-            // Send feedback to player
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.player != null) {
                 client.player.sendMessage(
@@ -86,16 +93,21 @@ public class Xray extends Module implements ConfigurableModule {
                         true
                 );
             }
-
-            // Trigger a full rescan when the setting changes
             if (SettingsStore.getInstance().get().isActive()) {
-                ScanTask.runTask(true);
+                ScanTask.runTask(client.player.getChunkPos(), SettingsStore.getInstance().get().getHalfRange(), true);
+            }
+        } else if (setting == chunkRange) {
+            SettingsStore.getInstance().get().setHalfRange((int) chunkRange.getDoubleValue());
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (client.player != null) {
+                client.player.sendMessage(
+                        Text.literal("§6Chunk Range: §l" + (int) chunkRange.getDoubleValue() + " chunks"),
+                        true
+                );
+            }
+            if (SettingsStore.getInstance().get().isActive()) {
+                ScanTask.runTask(client.player.getChunkPos(), SettingsStore.getInstance().get().getHalfRange(), true);
             }
         }
-    }
-
-    // Getter method for other classes to check if exposed only is enabled
-    public boolean isExposedOnly() {
-        return exposedOnly.getBooleanValue();
     }
 }

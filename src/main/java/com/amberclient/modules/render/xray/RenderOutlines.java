@@ -19,7 +19,6 @@ import org.apache.logging.log4j.Logger;
 public class RenderOutlines {
     public static AtomicBoolean requestedRefresh = new AtomicBoolean(false);
     private static VertexBuffer vertexBuffer;
-    private static int vertexCount;
     private static final Logger LOGGER = LogManager.getLogger("amberclient-xray");
 
     public static void render(WorldRenderContext context) {
@@ -196,7 +195,7 @@ public class RenderOutlines {
         BuiltBuffer builtBuffer = bufferBuilder.end();
         vertexBuffer.bind();
         vertexBuffer.upload(builtBuffer);
-        vertexCount = builtBuffer.getDrawParameters().vertexCount();
+        int vertexCount = builtBuffer.getDrawParameters().vertexCount();
         builtBuffer.close();
         VertexBuffer.unbind();
         allocator.close();

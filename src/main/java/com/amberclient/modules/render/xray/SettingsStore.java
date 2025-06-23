@@ -21,9 +21,8 @@ public class SettingsStore {
 
     public static class StateSettings {
         private boolean active = false;
-        private boolean showLava = true;
         private boolean exposedOnly = false;
-        private int halfRange = 4; // Chunks around the player
+        private int halfRange = 4;
 
         public boolean isActive() {
             return active;
@@ -34,7 +33,7 @@ public class SettingsStore {
         }
 
         public boolean isShowLava() {
-            return showLava;
+            return true;
         }
 
         public boolean isExposedOnly() {
@@ -47,6 +46,10 @@ public class SettingsStore {
 
         public int getHalfRange() {
             return halfRange;
+        }
+
+        public void setHalfRange(int halfRange) {
+            this.halfRange = halfRange;
         }
     }
 }
