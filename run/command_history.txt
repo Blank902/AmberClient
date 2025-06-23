@@ -1,8 +1,5 @@
 /amber dataitem 1
 /amber dataitem 0
-/amber dataitem
-/amber dataitem 1
-/amber dataitem 0
 /time set da
 /time set day
 /amber dummy
@@ -48,3 +45,6 @@
 /amber bind AimAssist X
 /amber bind Aim-Assist X
 /amber bind AimAssist X
+/spawnpoint Player856
+/weather clear
+/time set day

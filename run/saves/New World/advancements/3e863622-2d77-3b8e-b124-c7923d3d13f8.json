@@ -11,5 +11,29 @@
     },
     "done": false
   },
+  "minecraft:recipes/brewing/cauldron": {
+    "criteria": {
+      "has_water_bucket": "2025-06-23 10:36:28 +0200"
+    },
+    "done": true
+  },
+  "minecraft:husbandry/balanced_diet": {
+    "criteria": {
+      "enchanted_golden_apple": "2025-06-23 10:36:22 +0200"
+    },
+    "done": false
+  },
+  "minecraft:husbandry/root": {
+    "criteria": {
+      "consumed_item": "2025-06-23 10:36:22 +0200"
+    },
+    "done": true
+  },
+  "minecraft:recipes/misc/mojang_banner_pattern": {
+    "criteria": {
+      "has_enchanted_golden_apple": "2025-06-23 10:36:12 +0200"
+    },
+    "done": true
+  },
   "DataVersion": 4189
 }

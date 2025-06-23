@@ -5,17 +5,30 @@
     },
     "done": true
   },
+  "minecraft:adventure/adventuring_time": {
+    "criteria": {
+      "minecraft:forest": "2025-05-27 21:21:27 +0200",
+      "minecraft:plains": "2025-06-23 10:49:20 +0200"
+    },
+    "done": false
+  },
   "minecraft:adventure/root": {
     "criteria": {
       "killed_something": "2025-05-27 21:21:40 +0200"
     },
     "done": true
   },
-  "minecraft:adventure/adventuring_time": {
+  "minecraft:recipes/brewing/cauldron": {
     "criteria": {
-      "minecraft:forest": "2025-05-27 21:21:27 +0200"
+      "has_water_bucket": "2025-06-23 10:49:19 +0200"
     },
-    "done": false
+    "done": true
+  },
+  "minecraft:recipes/misc/mojang_banner_pattern": {
+    "criteria": {
+      "has_enchanted_golden_apple": "2025-06-23 10:49:19 +0200"
+    },
+    "done": true
   },
   "DataVersion": 4189
 }

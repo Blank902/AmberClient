@@ -24,7 +24,7 @@ public class HudRenderer {
         // Check if ActiveMods module is enabled
         Module hudModule = ModuleManager.getInstance().getModules()
                 .stream()
-                .filter(module -> module.getName().equals("Active mods") && module.isEnabled())
+                .filter(module -> module.getName().equals("ActiveMods") && module.isEnabled())
                 .findFirst()
                 .orElse(null);
         if (hudModule == null) {
@@ -35,7 +35,7 @@ public class HudRenderer {
         List<Module> enabledModules = ModuleManager.getInstance().getModules()
                 .stream()
                 .filter(Module::isEnabled)
-                .filter(module -> !module.getName().equals("Active mods") && !module.getName().equals("Transparency"))
+                .filter(module -> !module.getName().equals("ActiveMods") && !module.getName().equals("Transparency"))
                 .toList();
 
         if (enabledModules.isEmpty()) {
