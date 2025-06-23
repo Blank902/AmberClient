@@ -12,9 +12,10 @@ base {
 }
 
 repositories {
+	mavenCentral()
 	maven { url = "https://maven.fabricmc.net/" }
 	maven { url = "https://maven.architectury.dev/" }
-	mavenCentral()
+	maven { url "https://maven.seedfinding.com/" }
 }
 
 fabricApi {
@@ -31,6 +32,8 @@ dependencies {
 
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 	modImplementation "net.fabricmc:fabric-language-kotlin:1.11.0+kotlin.2.0.0"
+
+	implementation 'com.seedfinding:mc_core:1.200.1'
 }
 
 processResources {

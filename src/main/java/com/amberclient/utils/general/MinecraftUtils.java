@@ -1,13 +1,17 @@
 package com.amberclient.utils.general;
 
+import com.amberclient.mixins.client.MinecraftServerAccessor;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 public class MinecraftUtils {
+    private static final MinecraftClient mc = MinecraftClient.getInstance();
 
     private static final Set<EntityType<?>> HOSTILE_ENTITIES = new HashSet<>();
     private static final Set<EntityType<?>> NEUTRAL_ENTITIES = new HashSet<>();
@@ -67,5 +71,27 @@ public class MinecraftUtils {
             return "Passive";
         else
             return "Unknown";
+    }
+
+    public static String getWorldName() {
+        // Singleplayer
+        if (mc.isInSingleplayer()) {
+            if (mc.world == null) return "";
+            if (mc.getServer() == null) return "FAILED_BECAUSE_LEFT_WORLD";
+
+            // Alternative: Get world folder name from integrated server
+            File worldFolder = new File(mc.getServer().getSaveProperties().getLevelName());
+            if (worldFolder == null) {
+                return "unknown";
+            }
+            return worldFolder.getName();
+        }
+
+        // Multiplayer
+        if (mc.getCurrentServerEntry() != null) {
+            return mc.getCurrentServerEntry().isRealm() ? "realms" : mc.getCurrentServerEntry().address;
+        }
+
+        return "";
     }
 }
