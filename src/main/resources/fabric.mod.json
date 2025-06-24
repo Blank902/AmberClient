@@ -9,7 +9,7 @@
 	],
 	"contact": {
 		"homepage": "https://beacons.page/gqdThinky",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/gqdThinky/AmberClient"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/amber-client/icon.png",

@@ -4,6 +4,9 @@
   "package": "com.amberclient.mixins",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "accessors.CountPlacementModifierAccessor",
+    "accessors.HeightRangePlacementModifierAccessor",
+    "accessors.RarityFilterPlacementModifierAccessor",
     "amberclient.VelocityMixin",
     "client.DoubleSliderCallbacksMixin",
     "client.EntityHitboxMixin",
@@ -18,6 +21,8 @@
     "murdererfinder.ScoreboardMixin"
   ],
   "client": [
+    "ClientChunkManagerAccessor",
+    "ClientChunkMapAccessor",
     "amberclient.EntityESPMixin",
     "amberclient.NoHurtCamMixin",
     "client.ClientPlayerInteractionManagerMixin",

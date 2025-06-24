@@ -1,5 +1,6 @@
 package com.amberclient.modules.render.xray;
 
+import com.amberclient.utils.general.BasicColor;
 import net.minecraft.block.BlockState;
 
 public record BlockSearchEntry(

@@ -67,6 +67,9 @@ public class Xray extends Module implements ConfigurableModule {
         ScanTask.renderQueue.clear();
         lastPlayerChunk = null;
         wasActive = false;
+
+        OreSim.chunkRenderers.clear();
+        OreSim.oreConfig = null;
     }
 
     @Override

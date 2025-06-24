@@ -1,7 +1,9 @@
 package com.amberclient.utils.general;
 
+import com.amberclient.events.MinecraftServerAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.EntityType;
+import net.minecraft.world.chunk.Chunk;
 
 import java.io.File;
 import java.util.Arrays;
@@ -10,6 +12,8 @@ import java.util.Set;
 
 public class MinecraftUtils {
     private static final MinecraftClient mc = MinecraftClient.getInstance();
+
+    public static double frameTime;
 
     private static final Set<EntityType<?>> HOSTILE_ENTITIES = new HashSet<>();
     private static final Set<EntityType<?>> NEUTRAL_ENTITIES = new HashSet<>();
@@ -77,12 +81,11 @@ public class MinecraftUtils {
             if (mc.world == null) return "";
             if (mc.getServer() == null) return "FAILED_BECAUSE_LEFT_WORLD";
 
-            // Alternative: Get world folder name from integrated server
-            File worldFolder = new File(mc.getServer().getSaveProperties().getLevelName());
-            if (worldFolder == null) {
-                return "unknown";
+            File folder = ((MinecraftServerAccessor) mc.getServer()).getSession().getWorldDirectory(mc.world.getRegistryKey()).toFile();
+            if (folder.toPath().relativize(mc.runDirectory.toPath()).getNameCount() != 2) {
+                folder = folder.getParentFile();
             }
-            return worldFolder.getName();
+            return folder.getName();
         }
 
         // Multiplayer

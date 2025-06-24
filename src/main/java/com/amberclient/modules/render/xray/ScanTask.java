@@ -1,5 +1,6 @@
 package com.amberclient.modules.render.xray;
 
+import com.amberclient.utils.general.BasicColor;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
@@ -7,14 +8,12 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.World;
 import net.minecraft.block.BlockState;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ScanTask implements Runnable {
@@ -86,22 +85,40 @@ public class ScanTask implements Runnable {
 
     private Set<BlockPosWithColor> collectBlocks() {
         if (SettingsStore.getInstance().get().isOreSim()) {
-            try {
-                List<OreSimulator.Ore> ores = OreSimulator.getOres();
-                long worldSeed = OreSimulator.getWorldSeed();
-                Set<BlockPosWithColor> simulatedPositions = new HashSet<>();
-                int cX = centerChunk.x;
-                int cZ = centerChunk.z;
-                for (int i = cX - range; i <= cX + range; i++) {
-                    for (int j = cZ - range; j <= cZ + range; j++) {
-                        ChunkPos chunkPos = new ChunkPos(i, j);
-                        simulatedPositions.addAll(OreSimulator.simulateChunk(chunkPos, ores, worldSeed));
+            // Mode simulation avec OreSim
+            OreSim oreSim = OreSim.getInstance();
+            if (!oreSim.isEnabled()) {
+                oreSim.enable(); // Activer OreSim si ce n'est pas déjà fait
+            }
+
+            Set<BlockPosWithColor> simulatedPositions = new HashSet<>();
+            int cX = centerChunk.x;
+            int cZ = centerChunk.z;
+
+            // Parcourir les chunks dans la portée
+            for (int i = cX - range; i <= cX + range; i++) {
+                for (int j = cZ - range; j <= cZ + range; j++) {
+                    ChunkPos chunkPos = new ChunkPos(i, j);
+                    long chunkKey = chunkPos.toLong();
+
+                    // Récupérer les positions simulées pour ce chunk
+                    Map<BlockSearchEntry, Set<Vec3d>> oreMap = oreSim.getChunkRenderers().get(chunkKey);
+                    if (oreMap != null) {
+                        for (Map.Entry<BlockSearchEntry, Set<Vec3d>> entry : oreMap.entrySet()) {
+                            BlockSearchEntry ore = entry.getKey();
+                            Set<Vec3d> positions = entry.getValue();
+                            BasicColor color = ore.color();
+
+                            // Convertir les Vec3d en BlockPosWithColor
+                            for (Vec3d pos : positions) {
+                                BlockPos blockPos = new BlockPos((int) pos.x, (int) pos.y, (int) pos.z);
+                                simulatedPositions.add(new BlockPosWithColor(blockPos, color));
+                            }
+                        }
                     }
                 }
-                return simulatedPositions;
-            } catch (RuntimeException e) {
-                return new HashSet<>();
             }
+            return simulatedPositions;
         } else {
             Set<BlockSearchEntry> blocks = BlockStore.getInstance().getCache().get();
             if (blocks.isEmpty()) {

@@ -1,4 +1,4 @@
-package com.amberclient.modules.render.xray;
+package com.amberclient.utils.general;
 
 public record BasicColor(int red, int green, int blue) {
 }
