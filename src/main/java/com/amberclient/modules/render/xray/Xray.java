@@ -22,6 +22,7 @@ public class Xray extends Module implements ConfigurableModule {
     private final ModuleSettings chunkRadius;
     private final ModuleSettings exposedOnly;
     private final ModuleSettings showLava;
+    private final ModuleSettings oreSim;
     private final List<ModuleSettings> settings;
 
     public Xray() {
@@ -31,11 +32,13 @@ public class Xray extends Module implements ConfigurableModule {
         chunkRadius = new ModuleSettings("Chunk Radius", "Number of chunks to scan around the player", 1.0, 1.0, 8.0, 1.0);
         exposedOnly = new ModuleSettings("Exposed Only", "Show only ores exposed to air", false);
         showLava = new ModuleSettings("Show Lava", "Show lava with the ores", false);
+        oreSim = new ModuleSettings("OreSim", "Use world seed to predict ore generation instead of scanning existing blocks", false);
 
         settings = new ArrayList<>();
         settings.add(chunkRadius);
         settings.add(exposedOnly);
         settings.add(showLava);
+        settings.add(oreSim);
 
         WorldRenderEvents.AFTER_TRANSLUCENT.register(RenderOutlines::render);
     }
@@ -46,6 +49,7 @@ public class Xray extends Module implements ConfigurableModule {
         SettingsStore.getInstance().get().setExposedOnly(exposedOnly.getBooleanValue());
         SettingsStore.getInstance().get().setShowLava(showLava.getBooleanValue());
         SettingsStore.getInstance().get().setHalfRange((int) chunkRadius.getDoubleValue());
+        SettingsStore.getInstance().get().setOreSim(oreSim.getBooleanValue());
 
         ScanTask.resetLocationTracking();
 
@@ -112,6 +116,15 @@ public class Xray extends Module implements ConfigurableModule {
             SettingsStore.getInstance().get().setShowLava(showLava.getBooleanValue());
             client.player.sendMessage(
                     Text.literal("§6Show Lava: §l" + (showLava.getBooleanValue() ? "ON" : "OFF")),
+                    true
+            );
+            if (SettingsStore.getInstance().get().isActive()) {
+                ScanTask.runTask(client.player.getChunkPos(), SettingsStore.getInstance().get().getHalfRange(), true);
+            }
+        } else if (setting == oreSim) { // Nouveau paramètre
+            SettingsStore.getInstance().get().setOreSim(oreSim.getBooleanValue());
+            client.player.sendMessage(
+                    Text.literal("§6OreSim: §l" + (oreSim.getBooleanValue() ? "ON" : "OFF")),
                     true
             );
             if (SettingsStore.getInstance().get().isActive()) {

@@ -13,6 +13,7 @@ import net.minecraft.block.BlockState;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -41,7 +42,7 @@ public class ScanTask implements Runnable {
 
         if (forceScan || forceNextScan || playerLocationChanged(client.player, centerChunk, range) || playerLastChunk == null) {
             playerLastChunk = centerChunk;
-            forceNextScan = false; // Reset le flag après utilisation
+            forceNextScan = false;
             client.execute(new ScanTask(centerChunk, range));
         }
     }
@@ -56,8 +57,7 @@ public class ScanTask implements Runnable {
     }
 
     public static void blockBroken(World world, PlayerEntity player, BlockPos blockPos, BlockState blockState, BlockEntity blockEntity) {
-        if (!(player instanceof ClientPlayerEntity)) return;
-        ClientPlayerEntity clientPlayer = (ClientPlayerEntity) player;
+        if (!(player instanceof ClientPlayerEntity clientPlayer)) return;
         if (!SettingsStore.getInstance().get().isActive()) return;
         if (renderQueue.stream().anyMatch(e -> e.pos().equals(blockPos))) {
             runTask(clientPlayer.getChunkPos(), SettingsStore.getInstance().get().getHalfRange(), true);
@@ -81,54 +81,73 @@ public class ScanTask implements Runnable {
         renderQueue.clear();
         renderQueue.addAll(blocks);
         isScanning.set(false);
-        RenderOutlines.requestedRefresh.set(true); // Ensure refresh is triggered
+        RenderOutlines.requestedRefresh.set(true);
     }
 
     private Set<BlockPosWithColor> collectBlocks() {
-        Set<BlockSearchEntry> blocks = BlockStore.getInstance().getCache().get();
-        if (blocks.isEmpty()) {
-            return new HashSet<>();
-        }
-
-        MinecraftClient instance = MinecraftClient.getInstance();
-        final World world = instance.world;
-        final ClientPlayerEntity player = instance.player;
-
-        if (world == null || player == null) {
-            return new HashSet<>();
-        }
-
-        final Set<BlockPosWithColor> renderQueue = new HashSet<>();
-        int cX = centerChunk.x;
-        int cZ = centerChunk.z;
-
-        boolean exposedOnly = SettingsStore.getInstance().get().isExposedOnly();
-
-        for (int i = cX - range; i <= cX + range; i++) {
-            for (int j = cZ - range; j <= cZ + range; j++) {
-                if (!world.isChunkLoaded(i, j)) {
-                    continue;
+        if (SettingsStore.getInstance().get().isOreSim()) {
+            try {
+                List<OreSimulator.Ore> ores = OreSimulator.getOres();
+                long worldSeed = OreSimulator.getWorldSeed();
+                Set<BlockPosWithColor> simulatedPositions = new HashSet<>();
+                int cX = centerChunk.x;
+                int cZ = centerChunk.z;
+                for (int i = cX - range; i <= cX + range; i++) {
+                    for (int j = cZ - range; j <= cZ + range; j++) {
+                        ChunkPos chunkPos = new ChunkPos(i, j);
+                        simulatedPositions.addAll(OreSimulator.simulateChunk(chunkPos, ores, worldSeed));
+                    }
                 }
-                int chunkStartX = i << 4;
-                int chunkStartZ = j << 4;
-                for (int k = chunkStartX; k < chunkStartX + 16; k++) {
-                    for (int l = chunkStartZ; l < chunkStartZ + 16; l++) {
-                        int topY = world.getTopY(Heightmap.Type.WORLD_SURFACE, k, l);
-                        for (int m = world.getBottomY(); m < topY; m++) {
-                            BlockPos pos = new BlockPos(k, m, l);
-                            BasicColor color = isValidBlock(pos, world, blocks);
-                            if (color != null) {
-                                if (!exposedOnly || isBlockExposed(pos, world)) {
-                                    renderQueue.add(new BlockPosWithColor(pos, color));
+                return simulatedPositions;
+            } catch (RuntimeException e) {
+                return new HashSet<>();
+            }
+        } else {
+            Set<BlockSearchEntry> blocks = BlockStore.getInstance().getCache().get();
+            if (blocks.isEmpty()) {
+                return new HashSet<>();
+            }
+
+            MinecraftClient instance = MinecraftClient.getInstance();
+            final World world = instance.world;
+            final ClientPlayerEntity player = instance.player;
+
+            if (world == null || player == null) {
+                return new HashSet<>();
+            }
+
+            final Set<BlockPosWithColor> renderQueue = new HashSet<>();
+            int cX = centerChunk.x;
+            int cZ = centerChunk.z;
+
+            boolean exposedOnly = SettingsStore.getInstance().get().isExposedOnly();
+
+            for (int i = cX - range; i <= cX + range; i++) {
+                for (int j = cZ - range; j <= cZ + range; j++) {
+                    if (!world.isChunkLoaded(i, j)) {
+                        continue;
+                    }
+                    int chunkStartX = i << 4;
+                    int chunkStartZ = j << 4;
+                    for (int k = chunkStartX; k < chunkStartX + 16; k++) {
+                        for (int l = chunkStartZ; l < chunkStartZ + 16; l++) {
+                            int topY = world.getTopY(Heightmap.Type.WORLD_SURFACE, k, l);
+                            for (int m = world.getBottomY(); m < topY; m++) {
+                                BlockPos pos = new BlockPos(k, m, l);
+                                BasicColor color = isValidBlock(pos, world, blocks);
+                                if (color != null) {
+                                    if (!exposedOnly || isBlockExposed(pos, world)) {
+                                        renderQueue.add(new BlockPosWithColor(pos, color));
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
 
-        return renderQueue;
+            return renderQueue;
+        }
     }
 
     private BasicColor isValidBlock(BlockPos pos, World world, Set<BlockSearchEntry> blocks) {
@@ -142,14 +161,13 @@ public class ScanTask implements Runnable {
         }
 
         BlockState defaultState = state.getBlock().getDefaultState();
-        BasicColor color = blocks.stream()
+
+        return blocks.stream()
                 .filter(localState -> localState.isDefault() && defaultState == localState.state() ||
                         !localState.isDefault() && state == localState.state())
                 .findFirst()
                 .map(BlockSearchEntry::color)
                 .orElse(null);
-
-        return color;
     }
 
     private boolean isBlockExposed(BlockPos pos, World world) {
@@ -167,7 +185,7 @@ public class ScanTask implements Runnable {
 
             if (adjacentState.isAir() ||
                     !adjacentState.isOpaque() ||
-                    adjacentState.getFluidState().isEmpty() == false ||
+                    !adjacentState.getFluidState().isEmpty() ||
                     isNaturalCavity(adjacentPos, world)) {
                 return true;
             }

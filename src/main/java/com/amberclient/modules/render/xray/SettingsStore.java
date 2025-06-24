@@ -24,37 +24,17 @@ public class SettingsStore {
         private boolean exposedOnly = false;
         private boolean showLava = false;
         private int halfRange = 4;
+        private boolean oreSim = false;
 
-        public boolean isActive() {
-            return active;
-        }
-
-        public void setActive(boolean active) {
-            this.active = active;
-        }
-
-        public boolean isShowLava() {
-            return showLava;
-        }
-
-        public void setShowLava(boolean showLava) {
-            this.showLava = showLava;
-        }
-
-        public boolean isExposedOnly() {
-            return exposedOnly;
-        }
-
-        public void setExposedOnly(boolean exposedOnly) {
-            this.exposedOnly = exposedOnly;
-        }
-
-        public int getHalfRange() {
-            return halfRange;
-        }
-
-        public void setHalfRange(int halfRange) {
-            this.halfRange = halfRange;
-        }
+        public boolean isActive() { return active; }
+        public void setActive(boolean active) { this.active = active; }
+        public boolean isShowLava() { return showLava; }
+        public void setShowLava(boolean showLava) { this.showLava = showLava; }
+        public boolean isExposedOnly() { return exposedOnly; }
+        public void setExposedOnly(boolean exposedOnly) { this.exposedOnly = exposedOnly; }
+        public int getHalfRange() { return halfRange; }
+        public void setHalfRange(int halfRange) { this.halfRange = halfRange; }
+        public boolean isOreSim() { return oreSim; }
+        public void setOreSim(boolean oreSim) { this.oreSim = oreSim; }
     }
 }
