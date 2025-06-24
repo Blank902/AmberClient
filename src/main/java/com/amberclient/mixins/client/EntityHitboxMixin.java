@@ -21,7 +21,7 @@ public class EntityHitboxMixin {
 
     @Inject(method = "getBoundingBox", at = @At("RETURN"), cancellable = true)
     private void onGetBoundingBoxForTargeting(CallbackInfoReturnable<Box> cir) {
-        if (!Hitbox.isHitboxModuleEnabled || (MinecraftClient.getInstance() == null || MinecraftClient.getInstance().world == null)) return;
+        if (!Hitbox.Companion.isHitboxModuleEnabled() || (MinecraftClient.getInstance() == null || MinecraftClient.getInstance().world == null)) return;
 
         Entity entity = (Entity)(Object)this;
         MinecraftClient client = MinecraftClient.getInstance();
@@ -32,7 +32,7 @@ public class EntityHitboxMixin {
             Box originalBox = cir.getReturnValue();
             if (originalBox != null) {
                 double distance = client.player.getPos().distanceTo(entity.getPos());
-                if (distance > 4.0) return; // Limit to close range to avoid detection
+                if (distance > 4.0) return;
 
                 Vec3d playerPos = client.player.getEyePos();
                 Vec3d entityPos = entity.getPos().add(0, entity.getHeight() / 2, 0);

@@ -12,7 +12,7 @@ public class GameRendererMixin {
 
     @Inject(method = "updateCrosshairTarget", at = @At("HEAD"))
     private void beforeUpdateCrosshairTarget(float tickDelta, CallbackInfo ci) {
-        if (!Hitbox.isHitboxModuleEnabled) return;
+        if (!Hitbox.Companion.isHitboxModuleEnabled()) return;
 
         Hitbox.setCalculatingTarget(true);
     }
@@ -21,6 +21,4 @@ public class GameRendererMixin {
     private void afterUpdateCrosshairTarget(float tickDelta, CallbackInfo ci) {
         Hitbox.setCalculatingTarget(false);
     }
-
-
 }

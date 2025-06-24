@@ -103,9 +103,22 @@
   },
   "minecraft:adventure/adventuring_time": {
     "criteria": {
-      "minecraft:forest": "2025-05-24 20:45:42 +0200"
+      "minecraft:forest": "2025-05-24 20:45:42 +0200",
+      "minecraft:plains": "2025-06-24 11:51:27 +0200"
     },
     "done": false
+  },
+  "minecraft:recipes/brewing/cauldron": {
+    "criteria": {
+      "has_water_bucket": "2025-06-24 11:51:26 +0200"
+    },
+    "done": true
+  },
+  "minecraft:recipes/misc/mojang_banner_pattern": {
+    "criteria": {
+      "has_enchanted_golden_apple": "2025-06-24 11:51:26 +0200"
+    },
+    "done": true
   },
   "DataVersion": 4189
 }

@@ -24,7 +24,7 @@ public class MinecraftClientMixin {
 
     @Inject(method = "doAttack", at = @At("HEAD"))
     private void beforeDoAttack(CallbackInfoReturnable<Boolean> cir) {
-        if (!Hitbox.isHitboxModuleEnabled) return;
+        if (!Hitbox.Companion.isHitboxModuleEnabled()) return;
 
         MinecraftClient client = MinecraftClient.getInstance();
         Hitbox hitboxModule = Hitbox.getInstance();

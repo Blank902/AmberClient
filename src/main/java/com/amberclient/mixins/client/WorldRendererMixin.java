@@ -28,7 +28,7 @@ public class WorldRendererMixin {
     private void onRender(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, Matrix4f positionMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         MinecraftClient client = MinecraftClient.getInstance();
 
-        if (!client.getEntityRenderDispatcher().shouldRenderHitboxes() || !Hitbox.isHitboxModuleEnabled) {
+        if (!client.getEntityRenderDispatcher().shouldRenderHitboxes() || !Hitbox.Companion.isHitboxModuleEnabled()) {
             return;
         }
 
