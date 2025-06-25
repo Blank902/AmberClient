@@ -21,8 +21,6 @@
     "murdererfinder.ScoreboardMixin"
   ],
   "client": [
-    "ClientChunkManagerAccessor",
-    "ClientChunkMapAccessor",
     "amberclient.EntityESPMixin",
     "amberclient.NoHurtCamMixin",
     "client.ClientPlayerInteractionManagerMixin",

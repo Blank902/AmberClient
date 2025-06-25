@@ -84,87 +84,44 @@ public class ScanTask implements Runnable {
     }
 
     private Set<BlockPosWithColor> collectBlocks() {
-        if (SettingsStore.getInstance().get().isOreSim()) {
-            // Mode simulation avec OreSim
-            OreSim oreSim = OreSim.getInstance();
-            if (!oreSim.isEnabled()) {
-                oreSim.enable(); // Activer OreSim si ce n'est pas déjà fait
-            }
-
-            Set<BlockPosWithColor> simulatedPositions = new HashSet<>();
-            int cX = centerChunk.x;
-            int cZ = centerChunk.z;
-
-            // Parcourir les chunks dans la portée
-            for (int i = cX - range; i <= cX + range; i++) {
-                for (int j = cZ - range; j <= cZ + range; j++) {
-                    ChunkPos chunkPos = new ChunkPos(i, j);
-                    long chunkKey = chunkPos.toLong();
-
-                    // Récupérer les positions simulées pour ce chunk
-                    Map<BlockSearchEntry, Set<Vec3d>> oreMap = oreSim.getChunkRenderers().get(chunkKey);
-                    if (oreMap != null) {
-                        for (Map.Entry<BlockSearchEntry, Set<Vec3d>> entry : oreMap.entrySet()) {
-                            BlockSearchEntry ore = entry.getKey();
-                            Set<Vec3d> positions = entry.getValue();
-                            BasicColor color = ore.color();
-
-                            // Convertir les Vec3d en BlockPosWithColor
-                            for (Vec3d pos : positions) {
-                                BlockPos blockPos = new BlockPos((int) pos.x, (int) pos.y, (int) pos.z);
-                                simulatedPositions.add(new BlockPosWithColor(blockPos, color));
-                            }
-                        }
-                    }
+        Set<BlockSearchEntry> blocks = BlockStore.getInstance().getCache().get();
+        if (blocks.isEmpty()) {
+            return new HashSet<>();
+        }
+        MinecraftClient instance = MinecraftClient.getInstance();
+        final World world = instance.world;
+        final ClientPlayerEntity player = instance.player;
+        if (world == null || player == null) {
+            return new HashSet<>();
+        }
+        final Set<BlockPosWithColor> renderQueue = new HashSet<>();
+        int cX = centerChunk.x;
+        int cZ = centerChunk.z;
+        boolean exposedOnly = SettingsStore.getInstance().get().isExposedOnly();
+        for (int i = cX - range; i <= cX + range; i++) {
+            for (int j = cZ - range; j <= cZ + range; j++) {
+                if (!world.isChunkLoaded(i, j)) {
+                    continue;
                 }
-            }
-            return simulatedPositions;
-        } else {
-            Set<BlockSearchEntry> blocks = BlockStore.getInstance().getCache().get();
-            if (blocks.isEmpty()) {
-                return new HashSet<>();
-            }
-
-            MinecraftClient instance = MinecraftClient.getInstance();
-            final World world = instance.world;
-            final ClientPlayerEntity player = instance.player;
-
-            if (world == null || player == null) {
-                return new HashSet<>();
-            }
-
-            final Set<BlockPosWithColor> renderQueue = new HashSet<>();
-            int cX = centerChunk.x;
-            int cZ = centerChunk.z;
-
-            boolean exposedOnly = SettingsStore.getInstance().get().isExposedOnly();
-
-            for (int i = cX - range; i <= cX + range; i++) {
-                for (int j = cZ - range; j <= cZ + range; j++) {
-                    if (!world.isChunkLoaded(i, j)) {
-                        continue;
-                    }
-                    int chunkStartX = i << 4;
-                    int chunkStartZ = j << 4;
-                    for (int k = chunkStartX; k < chunkStartX + 16; k++) {
-                        for (int l = chunkStartZ; l < chunkStartZ + 16; l++) {
-                            int topY = world.getTopY(Heightmap.Type.WORLD_SURFACE, k, l);
-                            for (int m = world.getBottomY(); m < topY; m++) {
-                                BlockPos pos = new BlockPos(k, m, l);
-                                BasicColor color = isValidBlock(pos, world, blocks);
-                                if (color != null) {
-                                    if (!exposedOnly || isBlockExposed(pos, world)) {
-                                        renderQueue.add(new BlockPosWithColor(pos, color));
-                                    }
+                int chunkStartX = i << 4;
+                int chunkStartZ = j << 4;
+                for (int k = chunkStartX; k < chunkStartX + 16; k++) {
+                    for (int l = chunkStartZ; l < chunkStartZ + 16; l++) {
+                        int topY = world.getTopY(Heightmap.Type.WORLD_SURFACE, k, l);
+                        for (int m = world.getBottomY(); m < topY; m++) {
+                            BlockPos pos = new BlockPos(k, m, l);
+                            BasicColor color = isValidBlock(pos, world, blocks);
+                            if (color != null) {
+                                if (!exposedOnly || isBlockExposed(pos, world)) {
+                                    renderQueue.add(new BlockPosWithColor(pos, color));
                                 }
                             }
                         }
                     }
                 }
             }
-
-            return renderQueue;
         }
+        return renderQueue;
     }
 
     private BasicColor isValidBlock(BlockPos pos, World world, Set<BlockSearchEntry> blocks) {

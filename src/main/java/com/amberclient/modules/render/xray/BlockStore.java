@@ -1,5 +1,7 @@
 package com.amberclient.modules.render.xray;
 
+import com.amberclient.utils.general.BasicColor;
+import net.minecraft.block.Blocks;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -10,11 +12,13 @@ public class BlockStore {
 
     private BlockStore() {
         cache = new HashSet<>();
-        for (OreType oreType : OreType.values()) {
-            for (var block : oreType.blocks) {
-                cache.add(new BlockSearchEntry(block.getDefaultState(), oreType.color, true));
-            }
-        }
+        // Default blocks to scan
+        cache.add(new BlockSearchEntry(Blocks.DIAMOND_ORE.getDefaultState(), new BasicColor(51, 236, 255), true));
+        cache.add(new BlockSearchEntry(Blocks.DEEPSLATE_DIAMOND_ORE.getDefaultState(), new BasicColor(51, 236, 255), true));
+        cache.add(new BlockSearchEntry(Blocks.GOLD_ORE.getDefaultState(), new BasicColor(255, 252, 51), true));
+        cache.add(new BlockSearchEntry(Blocks.DEEPSLATE_GOLD_ORE.getDefaultState(), new BasicColor(255, 252, 51), true));
+        cache.add(new BlockSearchEntry(Blocks.IRON_ORE.getDefaultState(), new BasicColor(201, 201, 183), true));
+        cache.add(new BlockSearchEntry(Blocks.DEEPSLATE_IRON_ORE.getDefaultState(), new BasicColor(201, 201, 183), true));
     }
 
     public static BlockStore getInstance() {
