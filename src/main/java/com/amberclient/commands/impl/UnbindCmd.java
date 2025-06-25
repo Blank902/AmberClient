@@ -3,6 +3,8 @@ package com.amberclient.commands.impl;
 import com.amberclient.utils.module.Module;
 import com.amberclient.utils.module.ModuleManager;
 import com.mojang.brigadier.context.CommandContext;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import org.apache.logging.log4j.LogManager;
@@ -23,33 +25,60 @@ public class UnbindCmd {
             source.getPlayerOrThrow();
             String moduleName = ctx.getArgument("module", String.class);
 
-            ModuleManager moduleManager = ModuleManager.getInstance();
-            Module module = moduleManager.findModuleByName(moduleName);
-
-            if (module == null) {
-                source.sendError(Text.literal("Module '" + moduleName + "' not found."));
-                return 0;
-            }
-
-            String currentKey = moduleManager.getModuleKeyName(module);
-            if (currentKey.equals("Not bound")) {
-                source.sendFeedback(
-                        () -> Text.literal("§4[§cAmberClient§4] §cModule §4'" + moduleName + "' §cis not bound to any key."),
-                        false
-                );
-            } else {
-                moduleManager.unbindModule(module);
-                source.sendFeedback(
-                        () -> Text.literal("§4[§cAmberClient§4] §cUnbound module §4'" + moduleName + "' §cfrom key §4'" + currentKey + "'."),
-                        false
-                );
-            }
-            return 1;
+            return unbindModule(moduleName,
+                    message -> source.sendFeedback(() -> message, false),
+                    error -> source.sendError(error)
+            );
 
         } catch (Exception e) {
             LOGGER.error("Error unbinding module: {}", e.getMessage(), e);
             ctx.getSource().sendError(Text.literal("Error unbinding module: " + e.getMessage()));
             return 0;
         }
+    }
+
+    public static int executeClient(CommandContext<FabricClientCommandSource> ctx) {
+        try {
+            String moduleName = ctx.getArgument("module", String.class);
+            MinecraftClient client = MinecraftClient.getInstance();
+
+            return unbindModule(moduleName,
+                    message -> client.player.sendMessage(message, false),
+                    error -> client.player.sendMessage(error, false)
+            );
+
+        } catch (Exception e) {
+            LOGGER.error("Error unbinding module: {}", e.getMessage(), e);
+            MinecraftClient.getInstance().player.sendMessage(
+                    Text.literal("Error unbinding module: " + e.getMessage()), false
+            );
+            return 0;
+        }
+    }
+
+    private static int unbindModule(String moduleName,
+                                    java.util.function.Consumer<Text> sendFeedback,
+                                    java.util.function.Consumer<Text> sendError) {
+
+        ModuleManager moduleManager = ModuleManager.getInstance();
+        Module module = moduleManager.findModuleByName(moduleName);
+
+        if (module == null) {
+            sendError.accept(Text.literal("Module '" + moduleName + "' not found."));
+            return 0;
+        }
+
+        String currentKey = moduleManager.getModuleKeyName(module);
+        if (currentKey.equals("Not bound")) {
+            sendFeedback.accept(
+                    Text.literal("§4[§cAmberClient§4] §cModule §4'" + moduleName + "' §cis not bound to any key.")
+            );
+        } else {
+            moduleManager.unbindModule(module);
+            sendFeedback.accept(
+                    Text.literal("§4[§cAmberClient§4] §cUnbound module §4'" + moduleName + "' §cfrom key §4'" + currentKey + "'.")
+            );
+        }
+        return 1;
     }
 }

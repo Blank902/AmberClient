@@ -7,10 +7,13 @@ import com.amberclient.commands.impl.UnbindCmd;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 
 public class AmberCommand {
     public static void register() {
+        // Register server-side commands (for single-player and server ops)
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             dispatcher.register(
                     CommandManager.literal("amber")
@@ -26,17 +29,25 @@ public class AmberCommand {
                                         return DummyCmd.spawnDummy(source);
                                     })
                             )
-                            .then(CommandManager.literal("bind")
-                                    .then(CommandManager.argument("module", StringArgumentType.string())
-                                            .then(CommandManager.argument("key", StringArgumentType.string())
-                                                    .executes(BindCmd::execute)
+            );
+        });
+
+        // Register client-side commands (for multiplayer)
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+            dispatcher.register(
+                    ClientCommandManager.literal("amber")
+                            .then(ClientCommandManager.literal("bind")
+                                    .then(ClientCommandManager.argument("module", StringArgumentType.string())
+                                            .then(ClientCommandManager.argument("key", StringArgumentType.string())
+                                                    .executes(BindCmd::executeClient)
                                             )
                                     )
                             )
-                            .then(CommandManager.literal("unbind")
-                                    .then(CommandManager.argument("module", StringArgumentType.string()).executes(UnbindCmd::execute)
-                                            )
+                            .then(ClientCommandManager.literal("unbind")
+                                    .then(ClientCommandManager.argument("module", StringArgumentType.string())
+                                            .executes(UnbindCmd::executeClient)
                                     )
+                            )
             );
         });
     }
