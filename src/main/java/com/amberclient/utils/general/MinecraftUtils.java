@@ -1,8 +1,15 @@
 package com.amberclient.utils.general;
 
 import com.amberclient.events.MinecraftServerAccessor;
+import com.mojang.authlib.GameProfile;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.world.chunk.Chunk;
 
 import java.io.File;
@@ -52,6 +59,7 @@ public class MinecraftUtils {
         ));
     }
 
+    // Entity classification methods
     public static Set<EntityType<?>> getHostileEntities() { return Set.copyOf(HOSTILE_ENTITIES); }
     public static Set<EntityType<?>> getNeutralEntitiesEntities() { return Set.copyOf(NEUTRAL_ENTITIES); }
     public static Set<EntityType<?>> getPassiveEntities() { return Set.copyOf(PASSIVE_ENTITIES); }
@@ -75,6 +83,7 @@ public class MinecraftUtils {
             return "Unknown";
     }
 
+    // World utilities
     public static String getWorldName() {
         // Singleplayer
         if (mc.isInSingleplayer()) {
@@ -94,5 +103,34 @@ public class MinecraftUtils {
         }
 
         return "";
+    }
+
+    public static void sendChatMessage(Text message) {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if (mc != null && mc.inGameHud != null)
+            mc.inGameHud.getChatHud().addMessage(message);
+    }
+
+    public static void sendChatMessage(String message) {
+        sendChatMessage(Text.literal(message));
+    }
+
+    public static boolean isPlayerInTabList(PlayerEntity player) {
+        return isPlayerInTabList(player.getGameProfile());
+    }
+
+    public static boolean isPlayerInTabList(GameProfile profile) {
+        if (MinecraftClient.getInstance().player != null) {
+            String name = profile.getName();
+            for (PlayerListEntry entry : MinecraftClient.getInstance().player.networkHandler.getPlayerList())
+                if (entry.getProfile().getName().equals(name))
+                    return true;
+        }
+        return false;
+    }
+
+    public static ModMetadata getModMetadata(String modId) {
+        ModContainer container = FabricLoader.getInstance().getModContainer(modId).get();
+        return container.getMetadata();
     }
 }

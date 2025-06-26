@@ -1,9 +1,9 @@
 package com.amberclient.mixins.murdererfinder;
 
+import com.amberclient.utils.general.MinecraftUtils;
 import com.amberclient.utils.murdererfinder.MurdererFinder;
 import com.amberclient.utils.murdererfinder.access.PlayerEntityMixinAccess;
 import com.amberclient.utils.murdererfinder.config.ConfigManager;
-import com.amberclient.utils.murdererfinder.MinecraftUtils;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -80,7 +80,7 @@ public abstract class PlayerEntityMixin implements PlayerEntityMixinAccess {
                 if (!hasBow() && (heldItem == Items.BOW || heldItem == Items.ARROW)) {
                     _hasBow = true;
                     MurdererFinder.markedDetectives.add(((PlayerEntity)(Object)this).getGameProfile().getId());
-                } else if (ConfigManager.getConfig().mm.isMurderItem(heldItem)) {
+                } else if (ConfigManager.getConfig().getMm().isMurderItem(heldItem)) {
                     if (!MurdererFinder.clientIsMurder) {
                         MinecraftUtils.sendChatMessage("§4[AmberClient] " + Text.translatable("message.mm.murder_marked", Formatting.RED+((PlayerEntity)(Object)this).getGameProfile().getName()).getString());
                     }
