@@ -30,7 +30,7 @@ object MurdererFinder {
     fun isEnabled(): Boolean {
         return try {
             val config = ConfigManager.getConfig()
-            config?.enabled ?: false
+            config.enabled
         } catch (e: Exception) {
             logger.error("Error checking if mod is enabled: ${e.message}")
             false
@@ -75,10 +75,6 @@ object MurdererFinder {
     fun setModEnabled(state: Boolean) {
         try {
             val config = ConfigManager.getConfig()
-            if (config == null) {
-                logger.warn("Config is null, cannot set mod enabled state")
-                return
-            }
             if (state != config.enabled) {
                 config.enabled = state
                 ConfigManager.writeConfig()
@@ -92,10 +88,6 @@ object MurdererFinder {
     fun setHighlightMurders(state: Boolean) {
         try {
             val config = ConfigManager.getConfig()
-            if (config == null) {
-                logger.warn("Config is null, cannot set highlight murders")
-                return
-            }
             if (config.mm.highlightMurders != state) {
                 config.mm.highlightMurders = state
                 if (!state)
@@ -111,10 +103,6 @@ object MurdererFinder {
     fun setDetectiveHighlightOptions(state: Config.MurderMystery.DetectiveHighlightOptions) {
         try {
             val config = ConfigManager.getConfig()
-            if (config == null) {
-                logger.warn("Config is null, cannot set detective highlight options")
-                return
-            }
             if (config.mm.detectiveHighlightOptions != state) {
                 config.mm.detectiveHighlightOptions = state
                 if (!config.mm.shouldHighlightDetectives(clientIsMurder))

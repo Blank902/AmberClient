@@ -21,16 +21,15 @@ class Velocity : Module("Velocity", "Reduces knockback with anti-rollback", "Com
     private val chance = ModuleSettings("Chance", "Chance to apply velocity reduction", 100.0, 0.0, 100.0, 5.0)
     private val cancelAir = ModuleSettings("Cancel Air", "Cancel velocity when in air", false)
 
-    private val settings: MutableList<ModuleSettings>
-    private val client = MinecraftClient.getInstance()
+    private val settings: MutableList<ModuleSettings> = mutableListOf<ModuleSettings>().apply {
+        add(horizontalScale)
+        add(verticalScale)
+        add(chance)
+        add(cancelAir)
+    }
+    private val mc = getClient()
 
     init {
-        settings = mutableListOf<ModuleSettings>().apply {
-            add(horizontalScale)
-            add(verticalScale)
-            add(chance)
-            add(cancelAir)
-        }
         instance = this
     }
 
@@ -45,26 +44,23 @@ class Velocity : Module("Velocity", "Reduces knockback with anti-rollback", "Com
     }
 
     override fun onPreVelocity(event: PreVelocityEvent) {
-        val player = client.player ?: return
+        val player = mc.player ?: return // Updated reference
 
         if (cancelAir.booleanValue && !player.isOnGround) {
             event.isCanceled = true
             return
         }
 
-        // Get packet velocity (already scaled to blocks per tick in VelocityMixin)
         var motionX = event.motionX
         var motionY = event.motionY
         var motionZ = event.motionZ
 
-        // Apply velocity reduction based on chance
         if (chance.doubleValue == 100.0 || Math.random() * 100 <= chance.doubleValue) {
             motionX *= horizontalScale.doubleValue
             motionY *= verticalScale.doubleValue
             motionZ *= horizontalScale.doubleValue
         }
 
-        // Update the event with modified velocity
         event.motionX = motionX
         event.motionY = motionY
         event.motionZ = motionZ

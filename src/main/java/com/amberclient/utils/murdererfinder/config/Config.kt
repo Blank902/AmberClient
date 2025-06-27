@@ -27,10 +27,10 @@ class Config {
         var highlightMurders = true
 
         @Expose
-        var innocentHighlightOptions = InnocentHighlightOptions.AS_MURDER
+        var innocentHighlightOptions: InnocentHighlightOptions? = InnocentHighlightOptions.AS_MURDER
 
         @Expose
-        var detectiveHighlightOptions = DetectiveHighlightOptions.ALWAYS
+        var detectiveHighlightOptions: DetectiveHighlightOptions? = DetectiveHighlightOptions.ALWAYS
 
         @Expose
         var highlightGold = true
