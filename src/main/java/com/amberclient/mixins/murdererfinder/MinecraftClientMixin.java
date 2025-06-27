@@ -2,9 +2,9 @@ package com.amberclient.mixins.murdererfinder;
 
 import com.amberclient.utils.general.MinecraftUtils;
 import com.amberclient.utils.murdererfinder.MurdererFinder;
-import com.amberclient.utils.murdererfinder.access.ArmorStandEntityMixinAccess;
-import com.amberclient.utils.murdererfinder.access.PlayerEntityMixinAccess;
-import com.amberclient.utils.murdererfinder.access.EntityMixinAccess;
+import com.amberclient.mixins.accessors.ArmorStandEntityMixinAccessor;
+import com.amberclient.mixins.accessors.PlayerEntityMixinAccessor;
+import com.amberclient.mixins.accessors.EntityMixinAccessor;
 import com.amberclient.utils.murdererfinder.config.Config;
 import com.amberclient.utils.murdererfinder.config.ConfigManager;
 import net.minecraft.client.MinecraftClient;
@@ -49,27 +49,27 @@ public class MinecraftClientMixin {
             Config config = ConfigManager.getConfig();
 
             if (entity instanceof PlayerEntity) {
-                if (((PlayerEntityMixinAccess) entity).isRealPlayer())
-                    if (!ConfigManager.getConfig().getMm().shouldHighlightSpectators() && ((PlayerEntityMixinAccess) entity).isDeadSpectator())
-                        ((EntityMixinAccess) entity).setGlowColor(-1);
-                    else if (config.getMm().shouldHighlightMurders() && ((PlayerEntityMixinAccess) entity).isMurder()) {
-                        ((EntityMixinAccess) entity).setGlowColor(Config.MurderMystery.murderTeamColorValue);
+                if (((PlayerEntityMixinAccessor) entity).isRealPlayer())
+                    if (!ConfigManager.getConfig().getMm().shouldHighlightSpectators() && ((PlayerEntityMixinAccessor) entity).isDeadSpectator())
+                        ((EntityMixinAccessor) entity).setGlowColor(-1);
+                    else if (config.getMm().shouldHighlightMurders() && ((PlayerEntityMixinAccessor) entity).isMurder()) {
+                        ((EntityMixinAccessor) entity).setGlowColor(Config.MurderMystery.murderTeamColorValue);
                         info.setReturnValue(true);
-                    } else if (config.getMm().shouldHighlightDetectives(MurdererFinder.clientIsMurder) && ((PlayerEntityMixinAccess) entity).hasBow()) {
-                        ((EntityMixinAccess) entity).setGlowColor(Config.MurderMystery.detectiveTeamColorValue);
+                    } else if (config.getMm().shouldHighlightDetectives(MurdererFinder.clientIsMurder) && ((PlayerEntityMixinAccessor) entity).hasBow()) {
+                        ((EntityMixinAccessor) entity).setGlowColor(Config.MurderMystery.detectiveTeamColorValue);
                         info.setReturnValue(true);
                     } else if (config.getMm().shouldHighlightInnocents(MurdererFinder.clientIsMurder))
                         info.setReturnValue(true);
             } else if (entity instanceof ItemEntity) {
                 if (config.getMm().shouldHighlightGold())
                     if (((ItemEntity)entity).getStack().getItem() == Items.GOLD_INGOT) {
-                        ((EntityMixinAccess)entity).setGlowColor(Config.MurderMystery.goldTeamColorValue);
+                        ((EntityMixinAccessor)entity).setGlowColor(Config.MurderMystery.goldTeamColorValue);
                         info.setReturnValue(true);
                     }
             } else if (entity instanceof ArmorStandEntity) {
                 if (config.getMm().shouldHighlightBows())
-                    if (((ArmorStandEntityMixinAccess)entity).isHoldingDetectiveBow()) {
-                        ((EntityMixinAccess)entity).setGlowColor(Config.MurderMystery.bowTeamColorValue);
+                    if (((ArmorStandEntityMixinAccessor)entity).isHoldingDetectiveBow()) {
+                        ((EntityMixinAccessor)entity).setGlowColor(Config.MurderMystery.bowTeamColorValue);
                         info.setReturnValue(true);
                     }
             }

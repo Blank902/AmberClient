@@ -1,6 +1,6 @@
-package com.amberclient.utils.murdererfinder.access
+package com.amberclient.mixins.accessors
 
-interface PlayerEntityMixinAccess {
+interface PlayerEntityMixinAccessor {
     fun isMurder(): Boolean
     fun hasBow(): Boolean
     fun isRealPlayer(): Boolean

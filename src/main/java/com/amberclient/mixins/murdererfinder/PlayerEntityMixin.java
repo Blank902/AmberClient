@@ -2,7 +2,7 @@ package com.amberclient.mixins.murdererfinder;
 
 import com.amberclient.utils.general.MinecraftUtils;
 import com.amberclient.utils.murdererfinder.MurdererFinder;
-import com.amberclient.utils.murdererfinder.access.PlayerEntityMixinAccess;
+import com.amberclient.mixins.accessors.PlayerEntityMixinAccessor;
 import com.amberclient.utils.murdererfinder.config.ConfigManager;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.EquipmentSlot;
@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerEntity.class)
-public abstract class PlayerEntityMixin implements PlayerEntityMixinAccess {
+public abstract class PlayerEntityMixin implements PlayerEntityMixinAccessor {
     @Unique private boolean _isMurder = false;
     @Unique private boolean _isRealPlayer = false;
     @Unique private boolean _hasBow = false;

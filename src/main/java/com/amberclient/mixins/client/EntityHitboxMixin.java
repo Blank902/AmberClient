@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.Objects;
 import java.util.Random;
 
 @Mixin(Entity.class)
@@ -41,7 +42,7 @@ public class EntityHitboxMixin {
                 double dot = lookVec.dotProduct(toEntity);
                 double angle = Math.acos(dot) * (180.0 / Math.PI);
 
-                double baseExpandX = Hitbox.getInstance().getExpandX();
+                double baseExpandX = Objects.requireNonNull(Hitbox.getInstance()).getExpandX();
                 double baseExpandYUp = Hitbox.getInstance().getExpandYUp();
                 double baseExpandZ = Hitbox.getInstance().getExpandZ();
 

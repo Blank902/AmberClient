@@ -1,6 +1,6 @@
 package com.amberclient.mixins.murdererfinder;
 
-import com.amberclient.utils.murdererfinder.access.ArmorStandEntityMixinAccess;
+import com.amberclient.mixins.accessors.ArmorStandEntityMixinAccessor;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ArmorStandEntity.class)
-public class ArmorStandEntityMixin implements ArmorStandEntityMixinAccess {
+public class ArmorStandEntityMixin implements ArmorStandEntityMixinAccessor {
     private boolean _isHoldingDetectiveBow = false;
     private float lastRightArmYaw = Float.NEGATIVE_INFINITY;
 

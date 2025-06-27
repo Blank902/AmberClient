@@ -3,7 +3,7 @@ package com.amberclient.mixins.client;
 import com.amberclient.modules.player.FastPlace;
 import com.amberclient.modules.combat.Hitbox;
 import com.amberclient.modules.render.EntityESP;
-import com.amberclient.utils.murdererfinder.access.EntityMixinAccess;
+import com.amberclient.mixins.accessors.EntityMixinAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -12,7 +12,6 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -71,10 +70,10 @@ public class MinecraftClientMixin {
 
             // Apply outline and set glow color based on settings
             if (espModule.getRenderPlayersSetting().getBooleanValue() && livingEntity instanceof net.minecraft.entity.player.PlayerEntity) {
-                ((EntityMixinAccess) entity).setGlowColor(0xFFF126);
+                ((EntityMixinAccessor) entity).setGlowColor(0xFFF126);
                 info.setReturnValue(true);
             } else if (espModule.getRenderMobsSetting().getBooleanValue() && !(livingEntity instanceof net.minecraft.entity.player.PlayerEntity)) {
-                ((EntityMixinAccess) entity).setGlowColor(0x15BFD6);
+                ((EntityMixinAccessor) entity).setGlowColor(0x15BFD6);
                 info.setReturnValue(true);
             }
         }
