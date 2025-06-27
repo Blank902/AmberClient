@@ -280,8 +280,13 @@ public class ClickGUI extends Screen {
 
     private PanelBounds calcConfigPanel() {
         int w = Math.min(width - 40, 300), h = Math.min(height - 100, 400);
-        int x = width / 2 + (width - w) / 2 + configOffsetX - (int)(width * (1.0f - configAnim));
-        return new PanelBounds(x, 82 + configOffsetY, w, h);
+        int x = (width - w) / 2 + configOffsetX;
+        int y = 82 + configOffsetY;
+
+        x = MathHelper.clamp(x, 10, width - w - 10);
+        y = MathHelper.clamp(y, 10, height - h - 10);
+
+        return new PanelBounds(x, y, w, h);
     }
 
     private void drawBorder(DrawContext context, int x, int y, int w, int h) {
@@ -499,7 +504,11 @@ public class ClickGUI extends Screen {
 
     private void openConfigPanel(ModuleWrapper m) {
         if (m.isConfigurable) {
-            configModule = m; configAnim = 0.0f; configScroll = 0.0f; configOffsetX = -350; configOffsetY = 0;
+            configModule = m;
+            configAnim = 0.0f;
+            configScroll = 0.0f;
+            configOffsetX = 0;
+            configOffsetY = 0;
         }
     }
 
