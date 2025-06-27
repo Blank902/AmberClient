@@ -119,8 +119,9 @@ public class ClickGUI extends Screen {
         context.drawTextWithShadow(textRenderer, configModule != null ? "Configuring: " + configModule.name :
                 "Amber Client " + AmberClient.MOD_VERSION + " • MC 1.21.4", mainPanel.x + 10, statusY + 6, TEXT);
 
-        if (configAnim > 0.0f && configModule != null) renderConfigPanel(context, mouseX, mouseY);
         super.render(context, mouseX, mouseY, delta);
+
+        if (configAnim > 0.0f && configModule != null) renderConfigPanel(context, mouseX, mouseY);
     }
 
     private PanelBounds calcPanel() {
@@ -194,7 +195,8 @@ public class ClickGUI extends Screen {
 
     private void renderConfigPanel(DrawContext context, int mouseX, int mouseY) {
         PanelBounds p = calcConfigPanel();
-        context.fill(p.x, p.y, p.x + p.width, p.y + p.height, PANEL_BG);
+
+        context.fill(p.x, p.y, p.x + p.width, p.y + p.height, new Color(30, 30, 35, 255).getRGB());
         context.fill(p.x, p.y, p.x + p.width, p.y + 30, ACCENT);
         context.drawTextWithShadow(textRenderer, configModule.name + " Settings", p.x + 10, p.y + 10, Color.WHITE.getRGB());
 
@@ -214,7 +216,7 @@ public class ClickGUI extends Screen {
             int setY = top + i * (setH + sp) - (int)configScroll;
             if (setY + setH < top || setY > top + areaH) continue;
 
-            context.fill(p.x + 10, setY, p.x + p.width - 10, setY + setH, new Color(40, 40, 45, 220).getRGB());
+            context.fill(p.x + 10, setY, p.x + p.width - 10, setY + setH, new Color(40, 40, 45, 255).getRGB()); // Opaque
             context.drawTextWithShadow(textRenderer, s.getName(), p.x + 20, setY + 10, TEXT);
             context.drawTextWithShadow(textRenderer, s.getDescription(), p.x + 20, setY + 25, new Color(180, 180, 180).getRGB());
 
