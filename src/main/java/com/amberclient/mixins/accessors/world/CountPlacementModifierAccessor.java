@@ -1,4 +1,4 @@
-package com.amberclient.mixins.accessors;
+package com.amberclient.mixins.accessors.world;
 
 import net.minecraft.util.math.intprovider.IntProvider;
 import net.minecraft.world.gen.placementmodifier.CountPlacementModifier;

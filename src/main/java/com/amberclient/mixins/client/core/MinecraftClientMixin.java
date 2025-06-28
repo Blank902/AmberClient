@@ -1,9 +1,9 @@
-package com.amberclient.mixins.client;
+package com.amberclient.mixins.client.core;
 
 import com.amberclient.modules.player.FastPlace;
 import com.amberclient.modules.combat.Hitbox;
 import com.amberclient.modules.render.EntityESP;
-import com.amberclient.mixins.accessors.EntityMixinAccessor;
+import com.amberclient.mixins.accessors.entity.EntityMixinAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;

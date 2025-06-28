@@ -1,4 +1,4 @@
-package com.amberclient.mixins.client;
+package com.amberclient.mixins.client.rendering;
 
 import com.amberclient.modules.movement.SafeWalk;
 import net.minecraft.block.BlockState;

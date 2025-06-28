@@ -1,4 +1,4 @@
-package com.amberclient.mixins.accessors
+package com.amberclient.mixins.accessors.entity
 
 interface ArmorStandEntityMixinAccessor {
     fun isHoldingDetectiveBow(): Boolean

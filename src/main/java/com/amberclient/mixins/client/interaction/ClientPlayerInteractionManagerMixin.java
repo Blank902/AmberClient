@@ -1,4 +1,4 @@
-package com.amberclient.mixins.client;
+package com.amberclient.mixins.client.interaction;
 
 import com.amberclient.modules.player.FastBreak;
 import com.amberclient.utils.minecraft.BlockUtils;

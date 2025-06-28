@@ -1,4 +1,4 @@
-package com.amberclient.mixins.client;
+package com.amberclient.mixins.client.interaction;
 
 import com.amberclient.events.EventManager;
 import com.amberclient.utils.core.TickRate;

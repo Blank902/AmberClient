@@ -1,4 +1,4 @@
-package com.amberclient.mixins.accessors;
+package com.amberclient.mixins.accessors.world;
 
 import net.minecraft.world.gen.heightprovider.HeightProvider;
 import net.minecraft.world.gen.placementmodifier.HeightRangePlacementModifier;

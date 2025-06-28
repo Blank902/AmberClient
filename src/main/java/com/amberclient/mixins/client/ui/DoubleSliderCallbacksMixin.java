@@ -1,4 +1,4 @@
-package com.amberclient.mixins.client;
+package com.amberclient.mixins.client.ui;
 
 import net.minecraft.client.option.SimpleOption;
 import org.spongepowered.asm.mixin.Mixin;

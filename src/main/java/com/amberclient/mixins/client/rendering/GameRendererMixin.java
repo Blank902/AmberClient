@@ -1,4 +1,4 @@
-package com.amberclient.mixins.client;
+package com.amberclient.mixins.client.rendering;
 
 import com.amberclient.modules.combat.Hitbox;
 import net.minecraft.client.render.GameRenderer;
