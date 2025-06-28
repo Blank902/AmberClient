@@ -1,4 +1,4 @@
-package com.amberclient.utils.murdererfinder.config
+package com.amberclient.utils.features.murdererfinder.config
 
 import com.google.gson.annotations.Expose
 import net.minecraft.item.*

@@ -1,6 +1,6 @@
 package com.amberclient.modules.render.xray
 
-import com.amberclient.utils.general.BasicColor
+import com.amberclient.utils.core.BasicColor
 import net.minecraft.block.Blocks
 import java.util.Collections
 

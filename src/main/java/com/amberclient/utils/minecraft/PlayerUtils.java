@@ -1,6 +1,6 @@
-package com.amberclient.utils.general;
+package com.amberclient.utils.minecraft;
 
-import com.amberclient.utils.general.Dimension;
+import com.amberclient.utils.core.Dimension;
 import net.minecraft.client.MinecraftClient;
 
 public class PlayerUtils {

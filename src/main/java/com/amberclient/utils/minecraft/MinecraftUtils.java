@@ -1,4 +1,4 @@
-package com.amberclient.utils.general;
+package com.amberclient.utils.minecraft;
 
 import com.amberclient.events.MinecraftServerAccessor;
 import com.mojang.authlib.GameProfile;
@@ -10,7 +10,6 @@ import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.world.chunk.Chunk;
 
 import java.io.File;
 import java.util.Arrays;

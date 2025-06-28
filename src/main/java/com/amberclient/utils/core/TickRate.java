@@ -1,4 +1,4 @@
-package com.amberclient.utils.general;
+package com.amberclient.utils.core;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.packet.s2c.play.WorldTimeUpdateS2CPacket;

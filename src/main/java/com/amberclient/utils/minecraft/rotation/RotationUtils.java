@@ -1,4 +1,4 @@
-package com.amberclient.utils.rotation;
+package com.amberclient.utils.minecraft.rotation;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.MathHelper;

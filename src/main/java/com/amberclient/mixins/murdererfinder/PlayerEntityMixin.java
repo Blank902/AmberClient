@@ -1,9 +1,9 @@
 package com.amberclient.mixins.murdererfinder;
 
-import com.amberclient.utils.general.MinecraftUtils;
-import com.amberclient.utils.murdererfinder.MurdererFinder;
+import com.amberclient.utils.minecraft.MinecraftUtils;
+import com.amberclient.utils.features.murdererfinder.MurdererFinder;
 import com.amberclient.mixins.accessors.PlayerEntityMixinAccessor;
-import com.amberclient.utils.murdererfinder.config.ConfigManager;
+import com.amberclient.utils.features.murdererfinder.config.ConfigManager;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.effect.StatusEffectInstance;

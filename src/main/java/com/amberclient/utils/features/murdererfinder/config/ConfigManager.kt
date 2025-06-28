@@ -1,8 +1,8 @@
-package com.amberclient.utils.murdererfinder.config
+package com.amberclient.utils.features.murdererfinder.config
 
 import com.google.gson.GsonBuilder
-import com.amberclient.utils.murdererfinder.MurdererFinder
-import com.amberclient.utils.murdererfinder.ModProperties
+import com.amberclient.utils.features.murdererfinder.MurdererFinder
+import com.amberclient.utils.features.murdererfinder.ModProperties
 import net.fabricmc.loader.api.FabricLoader
 import org.apache.commons.io.FileUtils
 import java.io.File

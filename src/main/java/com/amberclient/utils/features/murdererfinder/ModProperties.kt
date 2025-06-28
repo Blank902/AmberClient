@@ -1,6 +1,6 @@
-package com.amberclient.utils.murdererfinder
+package com.amberclient.utils.features.murdererfinder
 
-import com.amberclient.utils.general.MinecraftUtils
+import com.amberclient.utils.minecraft.MinecraftUtils
 
 object ModProperties {
     const val MOD_ID = "mmhelper"

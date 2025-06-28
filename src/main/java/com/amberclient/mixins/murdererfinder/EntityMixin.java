@@ -1,6 +1,6 @@
 package com.amberclient.mixins.murdererfinder;
 
-import com.amberclient.utils.murdererfinder.MurdererFinder;
+import com.amberclient.utils.features.murdererfinder.MurdererFinder;
 import com.amberclient.mixins.accessors.EntityMixinAccessor;
 import net.minecraft.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;

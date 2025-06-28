@@ -6,7 +6,7 @@ import com.amberclient.events.PostMotionListener
 import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.Module
 import com.amberclient.utils.module.ModuleSettings
-import com.amberclient.utils.rotation.RotationFaker
+import com.amberclient.utils.minecraft.rotation.RotationFaker
 import net.minecraft.text.Text
 import org.apache.logging.log4j.Logger
 import org.apache.logging.log4j.LogManager

@@ -1,8 +1,7 @@
 package com.amberclient.mixins.client;
 
 import com.amberclient.events.EventManager;
-import com.amberclient.events.PacketEvent;
-import com.amberclient.utils.general.TickRate;
+import com.amberclient.utils.core.TickRate;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.WorldTimeUpdateS2CPacket;

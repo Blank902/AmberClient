@@ -1,6 +1,6 @@
 package com.amberclient.mixins.murdererfinder;
 
-import com.amberclient.utils.murdererfinder.MurdererFinder;
+import com.amberclient.utils.features.murdererfinder.MurdererFinder;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.ScoreboardObjective;

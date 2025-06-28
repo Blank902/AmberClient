@@ -1,6 +1,6 @@
 package com.amberclient.utils.module;
 
-import com.amberclient.utils.keybinds.CustomKeybindManager;
+import com.amberclient.utils.input.keybinds.CustomKeybindManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.text.Text;

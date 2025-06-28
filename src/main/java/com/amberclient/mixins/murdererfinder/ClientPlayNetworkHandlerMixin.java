@@ -1,6 +1,6 @@
 package com.amberclient.mixins.murdererfinder;
 
-import com.amberclient.utils.murdererfinder.MurdererFinder;
+import com.amberclient.utils.features.murdererfinder.MurdererFinder;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.PlayerAbilitiesS2CPacket;
 import org.spongepowered.asm.mixin.Mixin;

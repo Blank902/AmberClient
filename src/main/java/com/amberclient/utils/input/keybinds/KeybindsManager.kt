@@ -1,4 +1,4 @@
-package com.amberclient.utils.keybinds
+package com.amberclient.utils.input.keybinds
 
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.minecraft.client.option.KeyBinding

@@ -1,4 +1,4 @@
-package com.amberclient.utils.murdererfinder
+package com.amberclient.utils.features.murdererfinder
 
 import java.util.regex.Pattern
 

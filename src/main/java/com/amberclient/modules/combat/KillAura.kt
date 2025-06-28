@@ -22,14 +22,9 @@ import org.apache.logging.log4j.Logger
 
 import kotlin.random.Random
 import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
 import kotlin.math.atan2
 import kotlin.math.asin
 import kotlin.math.PI
-
-import com.amberclient.utils.general.TickRate.getTickRate
-import com.amberclient.utils.general.TickRate.getTimeSinceLastTick
 
 /*
     Thanks to https://github.com/enzzzh for the KillAura module base!

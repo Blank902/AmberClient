@@ -1,8 +1,8 @@
-package com.amberclient.utils.murdererfinder
+package com.amberclient.utils.features.murdererfinder
 
-import com.amberclient.utils.general.MinecraftUtils
-import com.amberclient.utils.murdererfinder.config.Config
-import com.amberclient.utils.murdererfinder.config.ConfigManager
+import com.amberclient.utils.minecraft.MinecraftUtils
+import com.amberclient.utils.features.murdererfinder.config.Config
+import com.amberclient.utils.features.murdererfinder.config.ConfigManager
 import net.minecraft.client.MinecraftClient
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting

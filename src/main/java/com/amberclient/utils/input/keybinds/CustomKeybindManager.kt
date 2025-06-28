@@ -1,4 +1,4 @@
-package com.amberclient.utils.keybinds
+package com.amberclient.utils.input.keybinds
 
 import net.minecraft.client.MinecraftClient
 import org.lwjgl.glfw.GLFW

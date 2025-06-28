@@ -1,11 +1,10 @@
 package com.amberclient.modules.combat
 
-import com.amberclient.utils.general.MinecraftUtils
+import com.amberclient.utils.minecraft.MinecraftUtils
 import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.Module
 import com.amberclient.utils.module.ModuleSettings
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
-import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.LivingEntity

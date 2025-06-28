@@ -1,7 +1,7 @@
 package com.amberclient.mixins.client;
 
 import com.amberclient.modules.player.FastBreak;
-import com.amberclient.utils.general.BlockUtils;
+import com.amberclient.utils.minecraft.BlockUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;

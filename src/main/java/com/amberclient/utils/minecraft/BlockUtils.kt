@@ -1,5 +1,5 @@
 
-package com.amberclient.utils.general
+package com.amberclient.utils.minecraft
 
 import net.minecraft.block.*
 import net.minecraft.client.MinecraftClient

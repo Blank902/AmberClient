@@ -1,4 +1,4 @@
-package com.amberclient.utils.general;
+package com.amberclient.utils.core;
 
 public enum Dimension {
     Overworld,

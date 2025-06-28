@@ -1,10 +1,10 @@
 package com.amberclient.modules.minigames
 
 import com.amberclient.utils.module.ModuleSettings
-import com.amberclient.utils.murdererfinder.MurdererFinder
+import com.amberclient.utils.features.murdererfinder.MurdererFinder
 import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.Module
-import com.amberclient.utils.murdererfinder.config.ConfigManager
+import com.amberclient.utils.features.murdererfinder.config.ConfigManager
 import net.minecraft.client.MinecraftClient
 import net.minecraft.text.Text
 import org.apache.logging.log4j.LogManager
