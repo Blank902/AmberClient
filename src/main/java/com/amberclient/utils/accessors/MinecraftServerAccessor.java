@@ -1,4 +1,4 @@
-package com.amberclient.accessors;
+package com.amberclient.utils.accessors;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelStorage;
