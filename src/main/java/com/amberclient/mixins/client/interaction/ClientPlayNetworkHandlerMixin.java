@@ -1,6 +1,6 @@
 package com.amberclient.mixins.client.interaction;
 
-import com.amberclient.events.EventManager;
+import com.amberclient.events.core.EventManager;
 import com.amberclient.utils.core.TickRate;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;

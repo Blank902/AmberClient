@@ -1,4 +1,4 @@
-package com.amberclient.events;
+package com.amberclient.mixins.accessors;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelStorage;

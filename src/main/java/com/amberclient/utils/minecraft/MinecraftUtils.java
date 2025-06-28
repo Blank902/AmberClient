@@ -1,6 +1,6 @@
 package com.amberclient.utils.minecraft;
 
-import com.amberclient.events.MinecraftServerAccessor;
+import com.amberclient.mixins.accessors.MinecraftServerAccessor;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;

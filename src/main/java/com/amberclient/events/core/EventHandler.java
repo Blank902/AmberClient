@@ -1,4 +1,4 @@
-package com.amberclient.events;
+package com.amberclient.events.core;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,4 +1,4 @@
-package com.amberclient.events;
+package com.amberclient.events.player;
 
 public class PreVelocityEvent {
     private double motionX;

@@ -1,8 +1,8 @@
 package com.amberclient.modules.combat
 
-import com.amberclient.events.EventManager
-import com.amberclient.events.PreMotionListener
-import com.amberclient.events.PostMotionListener
+import com.amberclient.events.core.EventManager
+import com.amberclient.events.player.PreMotionListener
+import com.amberclient.events.player.PostMotionListener
 import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.Module
 import com.amberclient.utils.module.ModuleSettings

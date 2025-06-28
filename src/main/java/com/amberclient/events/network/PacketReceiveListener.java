@@ -1,4 +1,4 @@
-package com.amberclient.events;
+package com.amberclient.events.network;
 
 import net.minecraft.network.packet.Packet;
 

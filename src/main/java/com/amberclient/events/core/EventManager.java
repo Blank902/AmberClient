@@ -1,5 +1,7 @@
-package com.amberclient.events;
+package com.amberclient.events.core;
 
+import com.amberclient.events.network.PacketReceiveListener;
+import com.amberclient.events.player.*;
 import net.minecraft.network.packet.Packet;
 import java.lang.reflect.Method;
 import java.util.ArrayList;

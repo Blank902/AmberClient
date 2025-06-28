@@ -1,12 +1,11 @@
 package com.amberclient.modules.combat
 
-import com.amberclient.events.EventManager
-import com.amberclient.events.PreVelocityEvent
-import com.amberclient.events.PreVelocityListener
+import com.amberclient.events.core.EventManager
+import com.amberclient.events.player.PreVelocityEvent
+import com.amberclient.events.player.PreVelocityListener
 import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.Module
 import com.amberclient.utils.module.ModuleSettings
-import net.minecraft.client.MinecraftClient
 
 class Velocity : Module("Velocity", "Reduces knockback with anti-rollback", "Combat"), ConfigurableModule, PreVelocityListener {
 

@@ -1,8 +1,8 @@
 package com.amberclient.mixins.features.amberclient;
 
-import com.amberclient.events.EventManager;
-import com.amberclient.events.PostVelocityEvent;
-import com.amberclient.events.PreVelocityEvent;
+import com.amberclient.events.core.EventManager;
+import com.amberclient.events.player.PostVelocityEvent;
+import com.amberclient.events.player.PreVelocityEvent;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;

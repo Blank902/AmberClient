@@ -1,4 +1,7 @@
-package com.amberclient.events;
+package com.amberclient.events.core;
+
+import com.amberclient.events.world.seed.SeedChangedEvent;
+import com.amberclient.events.world.seed.SeedChangedListener;
 
 import java.util.ArrayList;
 import java.util.List;

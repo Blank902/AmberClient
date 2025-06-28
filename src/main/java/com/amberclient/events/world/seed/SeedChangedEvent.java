@@ -1,4 +1,4 @@
-package com.amberclient.events;
+package com.amberclient.events.world.seed;
 
 public class SeedChangedEvent {
     private static final SeedChangedEvent INSTANCE = new SeedChangedEvent();
