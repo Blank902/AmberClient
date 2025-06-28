@@ -33,7 +33,7 @@ dependencies {
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 	modImplementation "net.fabricmc:fabric-language-kotlin:1.11.0+kotlin.2.0.0"
 
-	implementation 'com.seedfinding:mc_core:1.200.1'
+	implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 processResources {

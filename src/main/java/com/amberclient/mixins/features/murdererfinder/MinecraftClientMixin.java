@@ -2,9 +2,9 @@ package com.amberclient.mixins.features.murdererfinder;
 
 import com.amberclient.utils.minecraft.MinecraftUtils;
 import com.amberclient.utils.features.murdererfinder.MurdererFinder;
-import com.amberclient.mixins.accessors.entity.ArmorStandEntityMixinAccessor;
-import com.amberclient.mixins.accessors.entity.PlayerEntityMixinAccessor;
-import com.amberclient.mixins.accessors.entity.EntityMixinAccessor;
+import com.amberclient.accessors.entity.ArmorStandEntityMixinAccessor;
+import com.amberclient.accessors.entity.PlayerEntityMixinAccessor;
+import com.amberclient.accessors.entity.EntityMixinAccessor;
 import com.amberclient.utils.features.murdererfinder.config.Config;
 import com.amberclient.utils.features.murdererfinder.config.ConfigManager;
 import net.minecraft.client.MinecraftClient;
@@ -49,13 +49,13 @@ public class MinecraftClientMixin {
             Config config = ConfigManager.getConfig();
 
             if (entity instanceof PlayerEntity) {
-                if (((PlayerEntityMixinAccessor) entity).isRealPlayer())
-                    if (!ConfigManager.getConfig().getMm().shouldHighlightSpectators() && ((PlayerEntityMixinAccessor) entity).isDeadSpectator())
+                if (((PlayerEntityMixinAccessor) entity).amberClient$isRealPlayer())
+                    if (!ConfigManager.getConfig().getMm().shouldHighlightSpectators() && ((PlayerEntityMixinAccessor) entity).amberClient$isDeadSpectator())
                         ((EntityMixinAccessor) entity).setGlowColor(-1);
-                    else if (config.getMm().shouldHighlightMurders() && ((PlayerEntityMixinAccessor) entity).isMurder()) {
+                    else if (config.getMm().shouldHighlightMurders() && ((PlayerEntityMixinAccessor) entity).amberClient$isMurder()) {
                         ((EntityMixinAccessor) entity).setGlowColor(Config.MurderMystery.murderTeamColorValue);
                         info.setReturnValue(true);
-                    } else if (config.getMm().shouldHighlightDetectives(MurdererFinder.clientIsMurder) && ((PlayerEntityMixinAccessor) entity).hasBow()) {
+                    } else if (config.getMm().shouldHighlightDetectives(MurdererFinder.clientIsMurder) && ((PlayerEntityMixinAccessor) entity).amberClient$hasBow()) {
                         ((EntityMixinAccessor) entity).setGlowColor(Config.MurderMystery.detectiveTeamColorValue);
                         info.setReturnValue(true);
                     } else if (config.getMm().shouldHighlightInnocents(MurdererFinder.clientIsMurder))

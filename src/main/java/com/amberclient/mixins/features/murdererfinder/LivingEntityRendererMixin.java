@@ -1,7 +1,7 @@
 package com.amberclient.mixins.features.murdererfinder;
 
 import com.amberclient.utils.features.murdererfinder.MurdererFinder;
-import com.amberclient.mixins.accessors.entity.PlayerEntityMixinAccessor;
+import com.amberclient.accessors.entity.PlayerEntityMixinAccessor;
 import com.amberclient.utils.features.murdererfinder.config.ConfigManager;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
 import net.minecraft.entity.LivingEntity;
@@ -17,7 +17,7 @@ public class LivingEntityRendererMixin {
     @Inject(at = @At("HEAD"), method = "hasLabel(Lnet/minecraft/entity/LivingEntity;D)Z", cancellable = true)
     public void onShouldRenderName(LivingEntity livingEntity, double distance, CallbackInfoReturnable<Boolean> info) {
         if (MurdererFinder.isActive() && ConfigManager.getConfig().getMm().shouldShowNameTags()) {
-            if (livingEntity instanceof PlayerEntity && ((PlayerEntityMixinAccessor)livingEntity).isRealPlayer()) {
+            if (livingEntity instanceof PlayerEntity && ((PlayerEntityMixinAccessor)livingEntity).amberClient$isRealPlayer()) {
                 info.setReturnValue(true);
             }
         }

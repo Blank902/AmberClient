@@ -45,7 +45,9 @@ public class AmberClient implements ModInitializer {
 		KeybindsManager.INSTANCE.initialize();
 		ConfigManager.init();
 
-		LOGGER.info("Amber Client started! Version: " + MOD_VERSION);
+		ModuleManager.getInstance().initializeKeybinds();
+
+		LOGGER.info("Amber Client started! Version: " + MOD_VERSION + " with persistent keybinds!");
 	}
 
 	private void onClientTick(MinecraftClient client) {

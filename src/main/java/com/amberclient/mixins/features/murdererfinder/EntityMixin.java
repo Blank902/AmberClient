@@ -1,7 +1,7 @@
 package com.amberclient.mixins.features.murdererfinder;
 
 import com.amberclient.utils.features.murdererfinder.MurdererFinder;
-import com.amberclient.mixins.accessors.entity.EntityMixinAccessor;
+import com.amberclient.accessors.entity.EntityMixinAccessor;
 import net.minecraft.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;

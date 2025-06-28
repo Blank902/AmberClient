@@ -1,8 +1,8 @@
 package com.amberclient.mixins.features.murdererfinder;
 
+import com.amberclient.accessors.entity.PlayerEntityMixinAccessor;
 import com.amberclient.utils.minecraft.MinecraftUtils;
 import com.amberclient.utils.features.murdererfinder.MurdererFinder;
-import com.amberclient.mixins.accessors.entity.PlayerEntityMixinAccessor;
 import com.amberclient.utils.features.murdererfinder.config.ConfigManager;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.EquipmentSlot;
@@ -28,23 +28,23 @@ public abstract class PlayerEntityMixin implements PlayerEntityMixinAccessor {
     @Unique private boolean _hasBow = false;
     @Unique private boolean _isDeadSpectator = false;
 
-    @Unique @Override
-    public boolean isMurder() {
+    @Unique
+    public boolean amberClient$isMurder() {
         return _isMurder;
     }
 
     @Unique @Override
-    public boolean hasBow() {
+    public boolean amberClient$hasBow() {
         return _hasBow;
     }
 
     @Unique @Override
-    public boolean isRealPlayer() {
+    public boolean amberClient$isRealPlayer() {
         return _isRealPlayer;
     }
 
     @Unique @Override
-    public boolean isDeadSpectator() {
+    public boolean amberClient$isDeadSpectator() {
         return _isDeadSpectator;
     }
 
@@ -62,7 +62,7 @@ public abstract class PlayerEntityMixin implements PlayerEntityMixinAccessor {
             PlayerEntity player = (PlayerEntity)(Object)this;
             this._isRealPlayer = !player.isSleeping() && !player.isMainPlayer() && MinecraftUtils.isPlayerInTabList(player);
 
-            if ((MurdererFinder.clientIsDead || MurdererFinder.roundEnded) && isRealPlayer() && !isDeadSpectator()) {
+            if ((MurdererFinder.clientIsDead || MurdererFinder.roundEnded) && amberClient$isRealPlayer() && !amberClient$isDeadSpectator()) {
                 StatusEffectInstance activeInvisibilityEffect = player.getStatusEffect(StatusEffects.INVISIBILITY);
 //                if (player.isInvisible() && activeInvisibilityEffect != null) {
 //                    MMHelper.printChatMsg(Text.of(activeInvisibilityEffect.getDuration()+""));
@@ -75,9 +75,9 @@ public abstract class PlayerEntityMixin implements PlayerEntityMixinAccessor {
     @Inject(at = @At("RETURN"), method = "getEquippedStack")
     private void onEquip(EquipmentSlot slot, CallbackInfoReturnable<ItemStack> info) {
         if (MurdererFinder.isActive() && !MurdererFinder.roundEnded) {
-            if (!isMurder() && isRealPlayer()) {
+            if (!amberClient$isMurder() && amberClient$isRealPlayer()) {
                 Item heldItem = info.getReturnValue().getItem();
-                if (!hasBow() && (heldItem == Items.BOW || heldItem == Items.ARROW)) {
+                if (!amberClient$hasBow() && (heldItem == Items.BOW || heldItem == Items.ARROW)) {
                     _hasBow = true;
                     MurdererFinder.markedDetectives.add(((PlayerEntity)(Object)this).getGameProfile().getId());
                 } else if (ConfigManager.getConfig().getMm().isMurderItem(heldItem)) {

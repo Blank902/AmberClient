@@ -1,6 +1,6 @@
 package com.amberclient.mixins.features.murdererfinder;
 
-import com.amberclient.mixins.accessors.entity.ArmorStandEntityMixinAccessor;
+import com.amberclient.accessors.entity.ArmorStandEntityMixinAccessor;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;

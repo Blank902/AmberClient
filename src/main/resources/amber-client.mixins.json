@@ -4,9 +4,6 @@
   "package": "com.amberclient.mixins",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "accessors.world.CountPlacementModifierAccessor",
-    "accessors.world.HeightRangePlacementModifierAccessor",
-    "accessors.world.RarityFilterPlacementModifierAccessor",
     "features.amberclient.VelocityMixin",
     "client.ui.DoubleSliderCallbacksMixin",
     "client.rendering.EntityHitboxMixin",

@@ -13,6 +13,7 @@ import com.amberclient.modules.render.EntityESP;
 import com.amberclient.modules.render.Fullbright;
 import com.amberclient.modules.render.NoHurtCam;
 import com.amberclient.modules.render.xray.Xray;
+import com.amberclient.utils.input.keybinds.KeybindConfigManager;
 import com.amberclient.utils.input.keybinds.CustomKeybindManager;
 import com.amberclient.utils.input.keybinds.KeybindsManager;
 import net.minecraft.client.MinecraftClient;
@@ -26,6 +27,7 @@ import java.util.Map;
 public class ModuleManager {
     private static final ModuleManager INSTANCE = new ModuleManager();
     private final List<Module> modules = new ArrayList<>();
+    private boolean keybindsInitialized = false;
 
     private ModuleManager() {
         KeybindsManager.INSTANCE.initialize();
@@ -53,6 +55,40 @@ public class ModuleManager {
 
     public static ModuleManager getInstance() {
         return INSTANCE;
+    }
+
+    public void initializeKeybinds() {
+        if (keybindsInitialized) return;
+
+        System.out.println("[ModuleManager] Initializing keybind system...");
+
+        loadModuleKeybinds();
+
+        keybindsInitialized = true;
+        System.out.println("[ModuleManager] Keybind system initialized!");
+    }
+
+    private void loadModuleKeybinds() {
+        Map<String, String> savedKeybinds = KeybindConfigManager.INSTANCE.getAllModuleKeybinds();
+
+        System.out.println("[ModuleManager] Loading " + savedKeybinds.size() + " saved keybinds...");
+
+        for (Map.Entry<String, String> entry : savedKeybinds.entrySet()) {
+            String moduleName = entry.getKey();
+            String keyName = entry.getValue();
+
+            Module module = modules.stream()
+                    .filter(m -> m.getName().equalsIgnoreCase(moduleName))
+                    .findFirst()
+                    .orElse(null);
+
+            if (module != null) {
+                bindKeyToModuleInternal(module, keyName, false); // false = ne pas sauvegarder à nouveau
+                System.out.println("[ModuleManager] Restored keybind: " + keyName + " -> " + moduleName);
+            } else {
+                System.out.println("[ModuleManager] Warning: Module '" + moduleName + "' not found for saved keybind");
+            }
+        }
     }
 
     public void onTick() {
@@ -90,7 +126,6 @@ public class ModuleManager {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null) return;
 
-        // Handle static keybindings (original system)
         for (Map.Entry<String, KeyBinding> entry : KeybindsManager.INSTANCE.getKeyBindings().entrySet()) {
             KeyBinding keyBinding = entry.getValue();
 
@@ -107,14 +142,18 @@ public class ModuleManager {
     }
 
     public void bindKeyToModule(Module module, String keyName) {
+        bindKeyToModuleInternal(module, keyName, true);
+    }
+
+    private void bindKeyToModuleInternal(Module module, String keyName, boolean saveToConfig) {
         int keyCode = KeybindsManager.INSTANCE.getKeyCodeFromName(keyName);
 
         if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_UNKNOWN) {
-            System.err.println("Invalid key name: " + keyName);
+            System.err.println("[ModuleManager] Invalid key name: " + keyName);
             return;
         }
 
-        unbindModule(module);
+        unbindModuleInternal(module, false);
 
         String actionId = "module_" + module.getName().toLowerCase().replace(" ", "_");
 
@@ -134,18 +173,43 @@ public class ModuleManager {
 
         module.setCustomKeyCode(keyCode);
 
-        System.out.println("Successfully bound " + CustomKeybindManager.INSTANCE.getKeyName(keyCode) +
+        if (saveToConfig) {
+            KeybindConfigManager.INSTANCE.setModuleKeybind(module.getName(), keyName);
+        }
+
+        System.out.println("[ModuleManager] Successfully bound " + CustomKeybindManager.INSTANCE.getKeyName(keyCode) +
                 " to " + module.getName());
     }
 
     public void unbindModule(Module module) {
+        unbindModuleInternal(module, true);
+    }
+
+    private void unbindModuleInternal(Module module, boolean removeFromConfig) {
         int currentKeyCode = module.getCustomKeyCode();
         if (currentKeyCode != -1) {
             String actionId = "module_" + module.getName().toLowerCase().replace(" ", "_");
             CustomKeybindManager.INSTANCE.unbindAction(currentKeyCode, actionId);
             module.setCustomKeyCode(-1);
-            System.out.println("Unbound " + module.getName() + " from key");
+
+            if (removeFromConfig) {
+                KeybindConfigManager.INSTANCE.removeModuleKeybind(module.getName());
+            }
+
+            System.out.println("[ModuleManager] Unbound " + module.getName() + " from key");
         }
+    }
+
+    public String getModuleKeybind(Module module) {
+        return KeybindConfigManager.INSTANCE.getModuleKeybind(module.getName());
+    }
+
+    public boolean hasModuleKeybind(Module module) {
+        return getModuleKeybind(module) != null;
+    }
+
+    public Map<String, String> getAllModuleKeybinds() {
+        return KeybindConfigManager.INSTANCE.getAllModuleKeybinds();
     }
 
     public String getModuleKeyName(Module module) {
