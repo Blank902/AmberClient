@@ -14,6 +14,6 @@ class Transparency : Module("Transparency", "Make Click GUI Transparent", "HUD")
     init { enabled = true }
 
     fun getTransparencyLevel(): Float {
-        return if (isEnabled) 0.1f else 0.75f
+        return if (isEnabled) 0.0f else 0.9f
     }
 }
