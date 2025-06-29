@@ -6,17 +6,23 @@ import com.amberclient.utils.module.Module;
 import com.amberclient.utils.module.ModuleManager;
 import com.amberclient.utils.module.ConfigurableModule;
 import com.amberclient.utils.module.ModuleSettings;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.gui.PlayerSkinDrawer;
+import net.minecraft.client.util.SkinTextures;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.Color;
 import java.util.*;
+import java.util.UUID;
 
 public class ClickGUI extends Screen {
     // Theme colors
@@ -100,6 +106,9 @@ public class ClickGUI extends Screen {
         float trans = getTransparency();
         renderBackground(context, mouseX, mouseY, delta);
         context.fill(0, 0, width, height, applyTransparency(BASE_BG, trans));
+
+        renderPlayerInfo(context, mouseX, mouseY, trans);
+        super.render(context, mouseX, mouseY, delta);
 
         int centerX = width / 2;
         context.drawCenteredTextWithShadow(textRenderer, "AMBER CLIENT", centerX, 52, ACCENT);
@@ -276,6 +285,30 @@ public class ClickGUI extends Screen {
             context.fill(p.x + p.width - 15, thumbY, p.x + p.width - 10, thumbY + thumbH, ACCENT);
         }
         context.disableScissor();
+    }
+
+    private void renderPlayerInfo(DrawContext context, int mouseX, int mouseY, float trans) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player == null) return;
+
+        String playerName = client.player.getName().getString();
+        SkinTextures skinTextures = client.player.getSkinTextures();
+        Identifier skinTexture = skinTextures.texture();
+
+        int headSize = 25;
+        int padding = 12;
+        int x = padding + 100;
+        int y = height - headSize - padding - 35;
+
+        if (skinTexture != null) {
+            context.getMatrices().push();
+            PlayerSkinDrawer.draw(context, skinTextures, x, y, headSize);
+            context.getMatrices().pop();
+        }
+
+        int textX = x + headSize + 8;
+        int textY = y + (headSize - 8) / 2;
+        context.drawTextWithShadow(textRenderer, playerName, textX, textY, 0xFFFFFF);
     }
 
     private PanelBounds calcConfigPanel() {
