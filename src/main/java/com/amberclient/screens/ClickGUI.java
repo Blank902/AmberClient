@@ -204,11 +204,8 @@ public class ClickGUI extends Screen {
 
     private void renderConfigPanel(DrawContext context, int mouseX, int mouseY) {
         PanelBounds p = calcConfigPanel();
-        float trans = getTransparency(); // Get current transparency level
 
-        // Apply transparency to config panel background
-        context.fill(p.x, p.y, p.x + p.width, p.y + p.height,
-                applyTransparency(new Color(30, 30, 35, 255).getRGB(), trans));
+        context.fill(p.x, p.y, p.x + p.width, p.y + p.height, new Color(30, 30, 35, 255).getRGB());
         context.fill(p.x, p.y, p.x + p.width, p.y + 30, ACCENT);
         context.drawTextWithShadow(textRenderer, configModule.name + " Settings", p.x + 10, p.y + 10, Color.WHITE.getRGB());
 
@@ -228,9 +225,7 @@ public class ClickGUI extends Screen {
             int setY = top + i * (setH + sp) - (int)configScroll;
             if (setY + setH < top || setY > top + areaH) continue;
 
-            // Apply transparency to setting background
-            context.fill(p.x + 10, setY, p.x + p.width - 10, setY + setH,
-                    applyTransparency(new Color(40, 40, 45, 255).getRGB(), trans));
+            context.fill(p.x + 10, setY, p.x + p.width - 10, setY + setH, new Color(40, 40, 45, 255).getRGB()); // Opaque
             context.drawTextWithShadow(textRenderer, s.getName(), p.x + 20, setY + 10, TEXT);
             context.drawTextWithShadow(textRenderer, s.getDescription(), p.x + 20, setY + 25, new Color(180, 180, 180).getRGB());
 
@@ -259,23 +254,21 @@ public class ClickGUI extends Screen {
 
                 boolean isMouseOverButton = isMouseOver(mouseX, mouseY, buttonX, buttonY, buttonWidth, buttonHeight);
 
-                // Apply transparency to dropdown button
+                // Dessiner le bouton principal
                 context.fill(buttonX, buttonY, buttonX + buttonWidth, buttonY + buttonHeight,
-                        applyTransparency(isMouseOverButton ? new Color(120, 120, 120, 255).getRGB() :
-                                new Color(100, 100, 100, 255).getRGB(), trans));
+                        isMouseOverButton ? new Color(120, 120, 120).getRGB() : new Color(100, 100, 100).getRGB());
                 context.drawTextWithShadow(textRenderer, displayText, buttonX + 5, buttonY + 5, Color.WHITE.getRGB());
                 context.drawTextWithShadow(textRenderer, "▼", buttonX + buttonWidth - 15, buttonY + 5, Color.WHITE.getRGB());
 
-                // Apply transparency to dropdown options
+                // Afficher la liste déroulante si ce setting est ouvert
                 if (openDropdown == s) {
                     Enum<?>[] enumValues = currentValue.getDeclaringClass().getEnumConstants();
                     int optionY = buttonY + buttonHeight;
                     for (Enum<?> enumValue : enumValues) {
                         boolean optionHover = isMouseOver(mouseX, mouseY, buttonX, optionY, buttonWidth, 20);
                         int optionColor = enumValue == currentValue ? ACCENT :
-                                (optionHover ? new Color(120, 120, 120, 255).getRGB() : new Color(80, 80, 80, 255).getRGB());
-                        context.fill(buttonX, optionY, buttonX + buttonWidth, optionY + 20,
-                                applyTransparency(optionColor, trans));
+                                (optionHover ? new Color(120, 120, 120).getRGB() : new Color(80, 80, 80).getRGB());
+                        context.fill(buttonX, optionY, buttonX + buttonWidth, optionY + 20, optionColor);
                         drawBorder(context, buttonX, optionY, buttonWidth, 20);
                         context.drawTextWithShadow(textRenderer, enumValue.name(), buttonX + 5, optionY + 5, Color.WHITE.getRGB());
                         optionY += 20;
@@ -288,8 +281,7 @@ public class ClickGUI extends Screen {
             float ratio = (float) areaH / contentH;
             int thumbH = Math.max(20, (int)(areaH * ratio));
             int thumbY = top + (int)((areaH - thumbH) * (configScroll / Math.max(0, contentH - areaH)));
-            context.fill(p.x + p.width - 15, top, p.x + p.width - 10, top + areaH,
-                    applyTransparency(new Color(50, 50, 55).getRGB(), trans));
+            context.fill(p.x + p.width - 15, top, p.x + p.width - 10, top + areaH, new Color(50, 50, 55).getRGB());
             context.fill(p.x + p.width - 15, thumbY, p.x + p.width - 10, thumbY + thumbH, ACCENT);
         }
         context.disableScissor();
