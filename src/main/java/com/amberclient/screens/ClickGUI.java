@@ -302,7 +302,14 @@ public class ClickGUI extends Screen {
 
         if (skinTexture != null) {
             context.getMatrices().push();
+
+            // Disable blending to ensure full opacity
+            RenderSystem.disableBlend();
+            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f); // Full opacity
+
             PlayerSkinDrawer.draw(context, skinTextures, x, y, headSize);
+
+            // Do not re-enable blending immediately after drawing the head
             context.getMatrices().pop();
         }
 
