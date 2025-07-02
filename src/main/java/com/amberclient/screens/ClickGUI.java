@@ -1,7 +1,7 @@
 package com.amberclient.screens;
 
 import com.amberclient.AmberClient;
-import com.amberclient.modules.hud.Transparency;
+import com.amberclient.modules.miscellaneous.Transparency;
 import com.amberclient.utils.module.Module;
 import com.amberclient.utils.module.ModuleManager;
 import com.amberclient.utils.module.ConfigurableModule;
@@ -22,7 +22,6 @@ import org.lwjgl.glfw.GLFW;
 
 import java.awt.Color;
 import java.util.*;
-import java.util.UUID;
 
 public class ClickGUI extends Screen {
     // Theme colors
@@ -66,14 +65,14 @@ public class ClickGUI extends Screen {
         ModuleManager.getInstance().getModules().forEach(m -> catMap.computeIfAbsent(m.getCategory(), k -> new ArrayList<>()).add(m));
 
         catMap.entrySet().stream()
-                .filter(entry -> !entry.getKey().equals("HUD"))
+                .filter(entry -> !entry.getKey().equals("Miscellaneous"))
                 .sorted(Map.Entry.comparingByKey(String.CASE_INSENSITIVE_ORDER))
                 .forEach(entry -> categories.add(new Category(entry.getKey(), entry.getValue().stream().map(ModuleWrapper::new).toList())));
 
-        List<Module> hudModules = catMap.get("HUD");
+        List<Module> hudModules = catMap.get("Miscellaneous");
         if (hudModules != null && !hudModules.isEmpty()) {
             List<ModuleWrapper> wrappedHudModules = hudModules.stream().map(ModuleWrapper::new).toList();
-            categories.add(new Category("HUD", wrappedHudModules));
+            categories.add(new Category("Miscellaneous", wrappedHudModules));
         }
     }
 

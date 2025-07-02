@@ -54,15 +54,15 @@ public class DiscordManager {
             DiscordEventHandlers handlers = new DiscordEventHandlers();
 
             handlers.ready = (user) -> {
-                AmberClient.LOGGER.info("Discord RPC connected for the user: " + user.username);
+                AmberClient.LOGGER.info("Discord RPC connected for the user: {}", user.username);
             };
 
             handlers.errored = (errorCode, message) -> {
-                AmberClient.LOGGER.error("Discord RPC error: " + errorCode + " - " + message);
+                AmberClient.LOGGER.error("Discord RPC error: {} - {}", errorCode, message);
             };
 
             handlers.disconnected = (errorCode, message) -> {
-                AmberClient.LOGGER.warn("Discord RPC disconnected: " + errorCode + " - " + message);
+                AmberClient.LOGGER.warn("Discord RPC disconnected: {} - {}", errorCode, message);
             };
 
             DiscordRPC.INSTANCE.Discord_Initialize(APPLICATION_ID, handlers, true, null);
@@ -72,7 +72,7 @@ public class DiscordManager {
             updatePresence();
 
         } catch (Exception e) {
-            AmberClient.LOGGER.error("Discord RPC initialization failure: " + e.getMessage());
+            AmberClient.LOGGER.error("Discord RPC initialization failure: {}", e.getMessage());
         }
     }
 
@@ -83,9 +83,8 @@ public class DiscordManager {
             DiscordRichPresence presence = new DiscordRichPresence();
             MinecraftClient client = MinecraftClient.getInstance();
 
-            presence.details = "AmberClient " + AmberClient.MOD_VERSION;
-            presence.largeImageKey = "image";
-            presence.largeImageText = "Minecraft with AmberClient";
+            presence.largeImageKey = "amber";
+            presence.largeImageText = "AmberClient " + AmberClient.MOD_VERSION;
             presence.startTimestamp = System.currentTimeMillis() / 1000;
 
             if (client.world != null) {
@@ -96,7 +95,7 @@ public class DiscordManager {
                 } else {
                     ServerInfo serverInfo = client.getCurrentServerEntry();
                     if (serverInfo != null) {
-                        presence.state = "Sur " + serverInfo.name;
+                        presence.state = "In multiplayer - " + serverInfo.name;
                         presence.smallImageKey = "multiplayer";
                         presence.smallImageText = "On a server";
                     } else {

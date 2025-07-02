@@ -1,8 +1,9 @@
 package com.amberclient.utils.module;
 
 import com.amberclient.modules.combat.*;
-import com.amberclient.modules.hud.ActiveMods;
-import com.amberclient.modules.hud.Transparency;
+import com.amberclient.modules.misc.DiscordRPC;
+import com.amberclient.modules.miscellaneous.ActiveMods;
+import com.amberclient.modules.miscellaneous.Transparency;
 import com.amberclient.modules.minigames.MMFinder;
 import com.amberclient.modules.movement.AutoClutch;
 import com.amberclient.modules.movement.NoFall;
@@ -39,6 +40,7 @@ public class ModuleManager {
         registerModule(new KillAura());
         registerModule(new ActiveMods());
         registerModule(new Transparency());
+        registerModule(new DiscordRPC());
         registerModule(new NoFall());
         registerModule(new SafeWalk());
         registerModule(new FastBreak());

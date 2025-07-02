@@ -1,6 +1,6 @@
 package com.amberclient.screens;
 
-import com.amberclient.modules.hud.ActiveMods;
+import com.amberclient.modules.miscellaneous.ActiveMods;
 import com.amberclient.utils.module.Module;
 import com.amberclient.utils.module.ModuleManager;
 import net.minecraft.client.MinecraftClient;
