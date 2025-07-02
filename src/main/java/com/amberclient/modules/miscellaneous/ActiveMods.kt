@@ -5,7 +5,7 @@ import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.ModuleSettings
 import net.minecraft.text.Text
 
-class ActiveMods : Module("ActiveMods", "Toggles display of active modules", "HUD"), ConfigurableModule {
+class ActiveMods : Module("ActiveMods", "Toggles display of active modules", "Miscellaneous"), ConfigurableModule {
 
     private val enableRGB: ModuleSettings
     private val settings: MutableList<ModuleSettings>

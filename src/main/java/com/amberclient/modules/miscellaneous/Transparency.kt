@@ -4,7 +4,7 @@ import com.amberclient.utils.module.Module
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
-class Transparency : Module("Transparency", "Make Click GUI Transparent", "HUD") {
+class Transparency : Module("Transparency", "Make Click GUI Transparent", "Miscellaneous") {
 
     companion object {
         const val MOD_ID = "amberclient-transparency"

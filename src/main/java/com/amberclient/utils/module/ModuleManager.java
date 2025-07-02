@@ -1,7 +1,7 @@
 package com.amberclient.utils.module;
 
 import com.amberclient.modules.combat.*;
-import com.amberclient.modules.misc.DiscordRPC;
+import com.amberclient.modules.miscellaneous.DiscordRPC;
 import com.amberclient.modules.miscellaneous.ActiveMods;
 import com.amberclient.modules.miscellaneous.Transparency;
 import com.amberclient.modules.minigames.MMFinder;
@@ -85,7 +85,7 @@ public class ModuleManager {
                     .orElse(null);
 
             if (module != null) {
-                bindKeyToModuleInternal(module, keyName, false); // false = ne pas sauvegarder à nouveau
+                bindKeyToModuleInternal(module, keyName, false);
                 System.out.println("[ModuleManager] Restored keybind: " + keyName + " -> " + moduleName);
             } else {
                 System.out.println("[ModuleManager] Warning: Module '" + moduleName + "' not found for saved keybind");
@@ -103,7 +103,7 @@ public class ModuleManager {
                     try {
                         module.onTick();
                     } catch (Exception e) {
-                        System.err.println("Erreur dans " + module.getName() + ": " + e.getMessage());
+                        System.err.println("Error in " + module.getName() + ": " + e.getMessage());
                     }
                 });
 
@@ -132,13 +132,9 @@ public class ModuleManager {
             KeyBinding keyBinding = entry.getValue();
 
             while (keyBinding.wasPressed()) {
-                Module module = modules.stream()
+                modules.stream()
                         .filter(m -> m.getKeyBinding() == keyBinding)
-                        .findFirst()
-                        .orElse(null);
-                if (module != null) {
-                    module.toggle();
-                }
+                        .findFirst().ifPresent(Module::toggle);
             }
         }
     }
@@ -163,7 +159,7 @@ public class ModuleManager {
                 keyCode,
                 actionId,
                 "Toggle " + module.getName(),
-                true, // Requires player
+                true,
                 new Runnable() {
                     @Override
                     public void run() {
