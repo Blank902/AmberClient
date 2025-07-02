@@ -6,6 +6,7 @@ import com.amberclient.commands.AmberCommand;
 import com.amberclient.utils.input.keybinds.KeybindsManager;
 import com.amberclient.utils.module.ModuleManager;
 import com.amberclient.utils.features.murdererfinder.config.ConfigManager;
+import com.amberclient.utils.discord.DiscordManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudLayerRegistrationCallback;
@@ -21,6 +22,7 @@ public class AmberClient implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 	private static boolean hudLayerRegistered = false;
+	private int discordUpdateTicker = 0;
 
 	@Override
 	public void onInitialize() {
@@ -47,7 +49,12 @@ public class AmberClient implements ModInitializer {
 
 		ModuleManager.getInstance().initializeKeybinds();
 
-		LOGGER.info("Amber Client started! Version: " + MOD_VERSION + " with persistent keybinds!");
+		DiscordManager.getInstance().initialize();
+
+		LOGGER.info("Amber Client started! Version: " + MOD_VERSION + " with persistent keybinds and Discord RPC!");
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			DiscordManager.getInstance().shutdown();
+		}));
 	}
 
 	private void onClientTick(MinecraftClient client) {
@@ -56,5 +63,16 @@ public class AmberClient implements ModInitializer {
 
 		ModuleManager.getInstance().onTick();
 		ModuleManager.getInstance().handleKeyInputs();
+
+		DiscordManager discordManager = DiscordManager.getInstance();
+		if (discordManager.isInitialized()) {
+			discordManager.runCallbacks();
+
+			discordUpdateTicker++;
+			if (discordUpdateTicker >= 100) {
+				discordManager.updatePresence();
+				discordUpdateTicker = 0;
+			}
+		}
 	}
 }

@@ -24,5 +24,7 @@ replay_pid*
 
 *.html
 
+src/main/resources/discord.properties
+.gradle/
 run/
 build/
