@@ -3,16 +3,11 @@ package com.amberclient.screens;
 import com.amberclient.AmberClient;
 import com.amberclient.utils.module.ModuleManager;
 import com.amberclient.modules.miscellaneous.Transparency;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.util.SkinTextures;
-import net.minecraft.client.gui.PlayerSkinDrawer;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
@@ -35,6 +30,7 @@ public class MacroRecorderGUI extends Screen {
     // State variables
     private float animProgress = 0.0f;
     private float macroListScroll = 0.0f;
+    private float recorderScroll = 0.0f;
     private long lastTime = System.currentTimeMillis();
     private final ScrollState macroListScrollState = new ScrollState();
 
@@ -80,7 +76,7 @@ public class MacroRecorderGUI extends Screen {
     }
 
     private void initSavedMacros() {
-        // No example macros added
+        // Pas de macros par défaut
     }
 
     private float getTransparency() {
@@ -114,7 +110,6 @@ public class MacroRecorderGUI extends Screen {
         renderBackground(context, mouseX, mouseY, delta);
         context.fill(0, 0, width, height, applyTransparency(BASE_BG, trans));
 
-        renderPlayerInfo(context, mouseX, mouseY, trans);
         super.render(context, mouseX, mouseY, delta);
 
         int centerX = width / 2;
@@ -170,17 +165,37 @@ public class MacroRecorderGUI extends Screen {
     }
 
     private void renderRecorderTab(DrawContext context, PanelBounds panel, int mouseX, int mouseY, float trans) {
+        int contentX = panel.x + 20;
         int contentY = panel.y + 50;
+        int contentWidth = panel.width - 40;
         int contentHeight = panel.height - 100;
 
-        renderMacroInfoSection(context, panel.x + 20, contentY, panel.width - 40, 120, mouseX, mouseY, trans);
-        renderControlsSection(context, panel.x + 20, contentY + 130, panel.width - 40, 100, mouseX, mouseY, trans);
-        renderStatsSection(context, panel.x + 20, contentY + 240, panel.width - 40, contentHeight - 240, mouseX, mouseY, trans);
+        context.enableScissor(contentX, contentY, contentX + contentWidth, contentY + contentHeight);
+
+        int macroInfoY = contentY - (int)recorderScroll;
+        int controlsY = macroInfoY + 120 + 10;
+        int statsY = controlsY + 100 + 10;
+
+        renderMacroInfoSection(context, contentX, macroInfoY, contentWidth, mouseX, mouseY, trans);
+        renderControlsSection(context, contentX, controlsY, contentWidth, mouseX, mouseY, trans);
+        renderStatsSection(context, contentX, statsY, contentWidth, mouseX, mouseY, trans);
+
+        int totalContentHeight = statsY + 150 - contentY;
+
+        if (totalContentHeight > contentHeight) {
+            float scrollRatio = (float) contentHeight / totalContentHeight;
+            int thumbHeight = Math.max(20, (int)(contentHeight * scrollRatio));
+            int thumbY = contentY + (int)((contentHeight - thumbHeight) * (recorderScroll / (totalContentHeight - contentHeight)));
+            context.fill(contentX + contentWidth - 15, contentY, contentX + contentWidth - 10, contentY + contentHeight, applyTransparency(new Color(50, 50, 55).getRGB(), trans));
+            context.fill(contentX + contentWidth - 15, thumbY, contentX + contentWidth - 10, thumbY + thumbHeight, ACCENT);
+        }
+
+        context.disableScissor();
     }
 
-    private void renderMacroInfoSection(DrawContext context, int x, int y, int width, int height, int mouseX, int mouseY, float trans) {
-        context.fill(x, y, x + width, y + height, applyTransparency(new Color(40, 40, 45, 220).getRGB(), trans));
-        drawBorder(context, x, y, width, height);
+    private void renderMacroInfoSection(DrawContext context, int x, int y, int width, int mouseX, int mouseY, float trans) {
+        context.fill(x, y, x + width, y + 120, applyTransparency(new Color(40, 40, 45, 220).getRGB(), trans));
+        drawBorder(context, x, y, width, 120);
 
         context.drawTextWithShadow(textRenderer, "Macro configuration", x + 10, y + 10, ACCENT);
 
@@ -197,9 +212,9 @@ public class MacroRecorderGUI extends Screen {
         context.drawTextWithShadow(textRenderer, currentMacroName, nameFieldX + 5, nameFieldY + 5, Color.WHITE.getRGB());
     }
 
-    private void renderControlsSection(DrawContext context, int x, int y, int width, int height, int mouseX, int mouseY, float trans) {
-        context.fill(x, y, x + width, y + height, applyTransparency(new Color(40, 40, 45, 220).getRGB(), trans));
-        drawBorder(context, x, y, width, height);
+    private void renderControlsSection(DrawContext context, int x, int y, int width, int mouseX, int mouseY, float trans) {
+        context.fill(x, y, x + width, y + 100, applyTransparency(new Color(40, 40, 45, 220).getRGB(), trans));
+        drawBorder(context, x, y, width, 100);
 
         context.drawTextWithShadow(textRenderer, "Controls", x + 10, y + 10, ACCENT);
 
@@ -245,14 +260,14 @@ public class MacroRecorderGUI extends Screen {
         context.drawCenteredTextWithShadow(textRenderer, "Reinitialize", resetButtonX + buttonWidth / 2, buttonsY + 8, Color.WHITE.getRGB());
     }
 
-    private void renderStatsSection(DrawContext context, int x, int y, int width, int height, int mouseX, int mouseY, float trans) {
-        context.fill(x, y, x + width, y + height, applyTransparency(new Color(40, 40, 45, 220).getRGB(), trans));
-        drawBorder(context, x, y, width, height);
+    private void renderStatsSection(DrawContext context, int x, int y, int width, int mouseX, int mouseY, float trans) {
+        context.fill(x, y, x + width, y + 150, applyTransparency(new Color(40, 40, 45, 220).getRGB(), trans));
+        drawBorder(context, x, y, width, 150);
 
         context.drawTextWithShadow(textRenderer, "Statistics", x + 10, y + 10, ACCENT);
 
-        String statusText = isRecording ? "🔴 Recording in progress.." :
-                isPlaying ? "▶️ Playback in progress.." : "⏸️ Ready";
+        String statusText = isRecording ? "Recording in progress.." :
+                isPlaying ? "▶ Playback in progress.." : "⏸Ready";
         int statusColor = isRecording ? RECORDING_COLOR :
                 isPlaying ? SUCCESS_COLOR : TEXT;
         context.drawTextWithShadow(textRenderer, statusText, x + 10, y + 30, statusColor);
@@ -358,37 +373,11 @@ public class MacroRecorderGUI extends Screen {
         context.drawTextWithShadow(textRenderer, versionText, panel.x + panel.width - textRenderer.getWidth(versionText) - 10, statusY + 6, TEXT);
     }
 
-    private void renderPlayerInfo(DrawContext context, int mouseX, int mouseY, float trans) {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player == null) return;
-
-        String playerName = client.player.getName().getString();
-        SkinTextures skinTextures = client.player.getSkinTextures();
-        Identifier skinTexture = skinTextures.texture();
-
-        int headSize = 25;
-        int padding = 12;
-        int x = padding + 100;
-        int y = height - headSize - padding - 35;
-
-        if (skinTexture != null) {
-            context.getMatrices().push();
-            RenderSystem.disableBlend();
-            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-            PlayerSkinDrawer.draw(context, skinTextures, x, y, headSize);
-            context.getMatrices().pop();
-        }
-
-        int textX = x + headSize + 8;
-        int textY = y + (headSize - 8) / 2;
-        context.drawTextWithShadow(textRenderer, playerName, textX, textY, 0xFFFFFF);
-    }
-
     private void drawBorder(DrawContext context, int x, int y, int w, int h) {
-        context.fill(x - 1, y - 1, x + w + 1, y, OUTLINE);
-        context.fill(x - 1, y + h, x + w + 1, y + h + 1, OUTLINE);
-        context.fill(x - 1, y, x, y + h, OUTLINE);
-        context.fill(x + w, y, x + w + 1, y + h, OUTLINE);
+        context.drawHorizontalLine(x, x + w, y, OUTLINE);
+        context.drawHorizontalLine(x, x + w, y + h, OUTLINE);
+        context.drawVerticalLine(x, y, y + h, OUTLINE);
+        context.drawVerticalLine(x + w, y, y + h, OUTLINE);
     }
 
     private boolean isMouseOver(int mx, int my, int x, int y, int w, int h) {
@@ -422,7 +411,8 @@ public class MacroRecorderGUI extends Screen {
         }
 
         if (selectedTab == 0) {
-            return handleRecorderTabClick(mx, my, button, panel);
+            double adjustedMy = my + recorderScroll;
+            return handleRecorderTabClick(mx, adjustedMy, button, panel);
         } else {
             return handleSavedMacrosTabClick(mx, my, button, panel);
         }
@@ -516,8 +506,12 @@ public class MacroRecorderGUI extends Screen {
 
     @Override
     public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
-        if (selectedTab == 1) {
-            PanelBounds panel = calcMainPanel();
+        PanelBounds panel = calcMainPanel();
+        if (selectedTab == 0) {
+            int contentHeight = panel.height - 100;
+            int totalContentHeight = 390;
+            recorderScroll = (float) MathHelper.clamp(recorderScroll - scrollY * 15, 0, Math.max(0, totalContentHeight - contentHeight));
+        } else if (selectedTab == 1) {
             int listHeight = panel.height - 120;
             int totalContentHeight = savedMacros.size() * 55 - 5;
             macroListScroll = (float) MathHelper.clamp(macroListScroll - scrollY * 15, 0, Math.max(0, totalContentHeight - listHeight));
@@ -536,7 +530,7 @@ public class MacroRecorderGUI extends Screen {
                 editingName = false;
                 return true;
             }
-            // TODO: Add actual logic to edit currentMacroName
+            // TODO: Add logic to modify currentMacroName
         }
         if (keyCode == GLFW.GLFW_KEY_R) toggleRecording();
         if (keyCode == GLFW.GLFW_KEY_P && !isRecording && !isPlaying) playMacro();
@@ -556,18 +550,18 @@ public class MacroRecorderGUI extends Screen {
 
     private void playMacro() {
         isPlaying = true;
-        setStatusMessage("Registration stopped", SUCCESS_COLOR);
+        setStatusMessage("Playback started", SUCCESS_COLOR);
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 isPlaying = false;
                 setStatusMessage("Playback completed", SUCCESS_COLOR);
             }
-        }, 2000); //TODO: Simulation
+        }, 2000); // TODO: Simulation
     }
 
     private void saveMacro() {
-        MacroEntry newMacro = new MacroEntry(currentMacroName, 0); //TODO: Replace 0 with the real number of actions
+        MacroEntry newMacro = new MacroEntry(currentMacroName, 0); // TODO: Replace 0 with the actual number of actions
         savedMacros.add(newMacro);
         setStatusMessage("Saved macro: " + currentMacroName, SUCCESS_COLOR);
     }
@@ -578,13 +572,13 @@ public class MacroRecorderGUI extends Screen {
     }
 
     private void playSavedMacro(MacroEntry macro) {
-        setStatusMessage("Reading of " + macro.name, SUCCESS_COLOR);
+        setStatusMessage("Playing " + macro.name, SUCCESS_COLOR);
     }
 
     private void editSavedMacro(MacroEntry macro) {
         currentMacroName = macro.name;
         selectedTab = 0;
-        setStatusMessage("Edition of " + macro.name, ACCENT);
+        setStatusMessage("Editing " + macro.name, ACCENT);
     }
 
     private void deleteSavedMacro(MacroEntry macro) {
