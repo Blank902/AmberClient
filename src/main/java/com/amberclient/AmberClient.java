@@ -1,5 +1,6 @@
 package com.amberclient;
 
+import com.amberclient.modules.world.MacroRecordingSystem;
 import com.amberclient.screens.HudRenderer;
 import com.amberclient.screens.ClickGUI;
 import com.amberclient.commands.AmberCommand;
@@ -57,12 +58,15 @@ public class AmberClient implements ModInitializer {
 		}));
 	}
 
+
 	private void onClientTick(MinecraftClient client) {
 		if (KeybindsManager.INSTANCE.getOpenClickGui().wasPressed() && client.currentScreen == null)
 			client.setScreen(new ClickGUI());
 
 		ModuleManager.getInstance().onTick();
 		ModuleManager.getInstance().handleKeyInputs();
+
+		MacroRecordingSystem.getInstance().tick();
 
 		DiscordManager discordManager = DiscordManager.getInstance();
 		if (discordManager.isInitialized()) {

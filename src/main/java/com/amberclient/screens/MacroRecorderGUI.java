@@ -1,6 +1,7 @@
 package com.amberclient.screens;
 
 import com.amberclient.AmberClient;
+import com.amberclient.modules.world.MacroRecordingSystem;
 import com.amberclient.utils.module.ModuleManager;
 import com.amberclient.modules.miscellaneous.Transparency;
 import net.minecraft.client.gui.DrawContext;
@@ -48,9 +49,14 @@ public class MacroRecorderGUI extends Screen {
     private long statusMessageTime = 0;
     private int statusMessageColor = TEXT;
 
+    private final MacroRecordingSystem recordingSystem;
+    private MacroRecordingSystem.MacroRecordingListener recordingListener;
+
     public MacroRecorderGUI() {
         super(Text.literal("Macro Recorder - Amber Client"));
+        this.recordingSystem = MacroRecordingSystem.getInstance();
         initSavedMacros();
+        setupRecordingListener();
     }
 
     private static class ScrollState {
@@ -73,6 +79,23 @@ public class MacroRecorderGUI extends Screen {
             this.isEnabled = true;
             this.createdTime = System.currentTimeMillis();
         }
+    }
+
+    private void setupRecordingListener() {
+        recordingListener = new MacroRecordingSystem.MacroRecordingListener() {
+            @Override
+            public void onRecordingStarted() {
+                isRecording = true;
+                setStatusMessage("Recording started", RECORDING_COLOR);
+            }
+
+            @Override
+            public void onRecordingStopped() {
+                isRecording = false;
+                setStatusMessage("Recording stopped", SUCCESS_COLOR);
+            }
+        };
+        recordingSystem.addListener(recordingListener);
     }
 
     private void initSavedMacros() {
@@ -98,6 +121,14 @@ public class MacroRecorderGUI extends Screen {
                 .dimensions(width - 25, 5, 20, 20)
                 .tooltip(Tooltip.of(Text.literal("Close")))
                 .build());
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        recordingSystem.tick();
+
+        isRecording = recordingSystem.isRecording();
     }
 
     @Override
@@ -272,7 +303,8 @@ public class MacroRecorderGUI extends Screen {
                 isPlaying ? SUCCESS_COLOR : TEXT;
         context.drawTextWithShadow(textRenderer, statusText, x + 10, y + 30, statusColor);
 
-        context.drawTextWithShadow(textRenderer, "Actions in the current macro: 0", x + 10, y + 50, TEXT);
+        int actionCount = recordingSystem.getActionCount();
+        context.drawTextWithShadow(textRenderer, "Actions in the current macro: " + actionCount, x + 10, y + 50, TEXT);
         context.drawTextWithShadow(textRenderer, "Saved macros: " + savedMacros.size(), x + 10, y + 70, TEXT);
 
         context.drawTextWithShadow(textRenderer, "Shortcuts:", x + 10, y + 100, ACCENT);
@@ -544,8 +576,11 @@ public class MacroRecorderGUI extends Screen {
     }
 
     private void toggleRecording() {
-        isRecording = !isRecording;
-        setStatusMessage(isRecording ? "Recording started" : "Recording stopped", isRecording ? RECORDING_COLOR : SUCCESS_COLOR);
+        if (recordingSystem.isRecording()) {
+            recordingSystem.stopRecording();
+        } else {
+            recordingSystem.startRecording();
+        }
     }
 
     private void playMacro() {
@@ -561,13 +596,19 @@ public class MacroRecorderGUI extends Screen {
     }
 
     private void saveMacro() {
-        MacroEntry newMacro = new MacroEntry(currentMacroName, 0); // TODO: Replace 0 with the actual number of actions
+        List<MacroRecordingSystem.MacroAction> actions = recordingSystem.getRecordedActions();
+        MacroEntry newMacro = new MacroEntry(currentMacroName, actions.size());
+
+        // TODO: Save macros
+
         savedMacros.add(newMacro);
+        recordingSystem.clearRecording();
         setStatusMessage("Saved macro: " + currentMacroName, SUCCESS_COLOR);
     }
 
     private void resetMacro() {
         currentMacroName = "New Macro";
+        recordingSystem.clearRecording();
         setStatusMessage("Macro reinitialized", SUCCESS_COLOR);
     }
 
@@ -585,5 +626,15 @@ public class MacroRecorderGUI extends Screen {
         savedMacros.remove(macro);
         if (selectedMacro == macro) selectedMacro = null;
         setStatusMessage("Deleted macro: " + macro.name, ERROR_COLOR);
+    }
+
+
+
+    @Override
+    public void close() {
+        if (recordingListener != null) {
+            recordingSystem.removeListener(recordingListener);
+        }
+        super.close();
     }
 }

@@ -10,8 +10,11 @@ public class MacroRecorder extends Module {
     public static final String MOD_ID = "amberclient-macrorecorder";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
+    private final MacroRecordingSystem recordingSystem;
+
     public MacroRecorder() {
         super("MacroRecorder", "X", "World");
+        this.recordingSystem = MacroRecordingSystem.getInstance();
     }
 
     @Override
@@ -27,6 +30,18 @@ public class MacroRecorder extends Module {
 
     @Override
     public void onDisable() {
+        if (recordingSystem.isRecording()) {
+            recordingSystem.stopRecording();
+            LOGGER.info("Stopped macro recording due to module disable");
+        }
         LOGGER.info("MacroRecorder module disabled");
+    }
+
+    public boolean isRecording() {
+        return recordingSystem.isRecording();
+    }
+
+    public int getRecordedActionCount() {
+        return recordingSystem.getActionCount();
     }
 }
