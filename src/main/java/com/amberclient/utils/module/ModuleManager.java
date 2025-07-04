@@ -14,6 +14,7 @@ import com.amberclient.modules.render.EntityESP;
 import com.amberclient.modules.render.Fullbright;
 import com.amberclient.modules.render.NoHurtCam;
 import com.amberclient.modules.render.xray.Xray;
+import com.amberclient.modules.world.MacroRecorder;
 import com.amberclient.utils.input.keybinds.KeybindConfigManager;
 import com.amberclient.utils.input.keybinds.CustomKeybindManager;
 import com.amberclient.utils.input.keybinds.KeybindsManager;
@@ -53,6 +54,7 @@ public class ModuleManager {
         registerModule(new Velocity());
         registerModule(new NoHurtCam());
         registerModule(new AimAssist());
+        registerModule(new MacroRecorder());
     }
 
     public static ModuleManager getInstance() {
