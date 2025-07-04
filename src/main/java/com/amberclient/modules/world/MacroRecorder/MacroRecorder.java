@@ -1,4 +1,4 @@
-package com.amberclient.modules.world;
+package com.amberclient.modules.world.MacroRecorder;
 
 import com.amberclient.screens.MacroRecorderGUI;
 import com.amberclient.utils.module.Module;
@@ -15,6 +15,13 @@ public class MacroRecorder extends Module {
     public MacroRecorder() {
         super("MacroRecorder", "X", "World");
         this.recordingSystem = MacroRecordingSystem.getInstance();
+        MacrosManager persistenceManager = new MacrosManager();
+
+        try {
+            persistenceManager.cleanupOrphanedFiles();
+        } catch (Exception e) {
+            LOGGER.warn("Failed to cleanup orphaned files at startup", e);
+        }
     }
 
     @Override

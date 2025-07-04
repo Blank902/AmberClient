@@ -1,6 +1,6 @@
 package com.amberclient;
 
-import com.amberclient.modules.world.MacroRecordingSystem;
+import com.amberclient.modules.world.MacroRecorder.MacroRecordingSystem;
 import com.amberclient.screens.HudRenderer;
 import com.amberclient.screens.ClickGUI;
 import com.amberclient.commands.AmberCommand;

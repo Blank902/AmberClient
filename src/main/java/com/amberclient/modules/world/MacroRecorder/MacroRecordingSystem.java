@@ -1,16 +1,12 @@
-package com.amberclient.modules.world;
+package com.amberclient.modules.world.MacroRecorder;
 
 import com.amberclient.screens.MacroRecorderGUI;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
@@ -301,6 +297,17 @@ public class MacroRecordingSystem {
                 // TODO: will be used for reproduction
             }
         }
+    }
+
+    public void loadActions(List<MacroAction> actions) {
+        if (isRecording) {
+            LOGGER.warn("Cannot load actions while recording!");
+            return;
+        }
+
+        recordedActions.clear();
+        recordedActions.addAll(actions);
+        LOGGER.info("Loaded {} actions into recording system", actions.size());
     }
 
     public void addListener(MacroRecordingListener listener) {

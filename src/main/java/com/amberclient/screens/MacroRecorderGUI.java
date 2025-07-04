@@ -1,7 +1,9 @@
 package com.amberclient.screens;
 
 import com.amberclient.AmberClient;
-import com.amberclient.modules.world.MacroRecordingSystem;
+import com.amberclient.modules.world.MacroRecorder.MacroPlaybackSystem;
+import com.amberclient.modules.world.MacroRecorder.MacroRecordingSystem;
+import com.amberclient.modules.world.MacroRecorder.MacrosManager;
 import com.amberclient.utils.module.ModuleManager;
 import com.amberclient.modules.miscellaneous.Transparency;
 import net.minecraft.client.gui.DrawContext;
@@ -39,8 +41,8 @@ public class MacroRecorderGUI extends Screen {
     private boolean isRecording = false;
     private boolean isPlaying = false;
     private String currentMacroName = "New Macro";
-    private final List<MacroEntry> savedMacros = new ArrayList<>();
-    private MacroEntry selectedMacro = null;
+    private final List<MacrosManager.SavedMacro> savedMacros = new ArrayList<>();
+    private MacrosManager.SavedMacro selectedMacro = null;
     private int selectedTab = 0; // 0 = Recorder, 1 = Saved Macros
 
     // UI state
@@ -52,9 +54,15 @@ public class MacroRecorderGUI extends Screen {
     private final MacroRecordingSystem recordingSystem;
     private MacroRecordingSystem.MacroRecordingListener recordingListener;
 
+    private String nameBuffer = "";
+    private int cursorPosition = 0;
+
+    private final MacrosManager persistenceManager;
+
     public MacroRecorderGUI() {
         super(Text.literal("Macro Recorder - Amber Client"));
         this.recordingSystem = MacroRecordingSystem.getInstance();
+        this.persistenceManager = new MacrosManager();
         initSavedMacros();
         setupRecordingListener();
     }
@@ -66,20 +74,6 @@ public class MacroRecorderGUI extends Screen {
     }
 
     private record PanelBounds(int x, int y, int width, int height) {}
-
-    private static class MacroEntry {
-        String name;
-        int actionCount;
-        boolean isEnabled;
-        long createdTime;
-
-        MacroEntry(String name, int actionCount) {
-            this.name = name;
-            this.actionCount = actionCount;
-            this.isEnabled = true;
-            this.createdTime = System.currentTimeMillis();
-        }
-    }
 
     private void setupRecordingListener() {
         recordingListener = new MacroRecordingSystem.MacroRecordingListener() {
@@ -99,7 +93,12 @@ public class MacroRecorderGUI extends Screen {
     }
 
     private void initSavedMacros() {
-        // Pas de macros par défaut
+        try {
+            savedMacros.clear();
+            savedMacros.addAll(persistenceManager.loadMacros());
+        } catch (Exception e) {
+            setStatusMessage("Failed to load saved macros", ERROR_COLOR);
+        }
     }
 
     private float getTransparency() {
@@ -240,7 +239,15 @@ public class MacroRecorderGUI extends Screen {
         int nameFieldColor = editingName ? ACCENT_HOVER : (nameHovered ? new Color(60, 60, 65).getRGB() : new Color(50, 50, 55).getRGB());
         context.fill(nameFieldX, nameFieldY, nameFieldX + nameFieldW, nameFieldY + nameFieldH, nameFieldColor);
         drawBorder(context, nameFieldX, nameFieldY, nameFieldW, nameFieldH);
-        context.drawTextWithShadow(textRenderer, currentMacroName, nameFieldX + 5, nameFieldY + 5, Color.WHITE.getRGB());
+
+        String displayText = editingName ? nameBuffer : currentMacroName;
+        context.drawTextWithShadow(textRenderer, displayText, nameFieldX + 5, nameFieldY + 5, Color.WHITE.getRGB());
+
+        if (editingName && System.currentTimeMillis() % 1000 < 500) {
+            String textBeforeCursor = nameBuffer.substring(0, Math.min(cursorPosition, nameBuffer.length()));
+            int cursorX = nameFieldX + 5 + textRenderer.getWidth(textBeforeCursor);
+            context.drawVerticalLine(cursorX, nameFieldY + 3, nameFieldY + nameFieldH - 3, Color.WHITE.getRGB());
+        }
     }
 
     private void renderControlsSection(DrawContext context, int x, int y, int width, int mouseX, int mouseY, float trans) {
@@ -333,7 +340,7 @@ public class MacroRecorderGUI extends Screen {
         macroListScroll = MathHelper.clamp(macroListScroll, 0, Math.max(0, totalContentHeight - listHeight));
 
         for (int i = 0; i < savedMacros.size(); i++) {
-            MacroEntry macro = savedMacros.get(i);
+            MacrosManager.SavedMacro macro = savedMacros.get(i);
             int macroY = listY + i * (macroHeight + macroSpacing) - (int)macroListScroll;
 
             if (macroY + macroHeight < listY || macroY > listY + listHeight) continue;
@@ -459,7 +466,14 @@ public class MacroRecorderGUI extends Screen {
         int nameFieldH = 20;
         if (isMouseOver((int)mx, (int)my, nameFieldX, nameFieldY, nameFieldW, nameFieldH)) {
             editingName = true;
+            nameBuffer = currentMacroName;
+            cursorPosition = nameBuffer.length();
             return true;
+        } else if (editingName) {
+            editingName = false;
+            currentMacroName = nameBuffer;
+            nameBuffer = "";
+            cursorPosition = 0;
         }
 
         int buttonWidth = 100;
@@ -505,7 +519,7 @@ public class MacroRecorderGUI extends Screen {
         int macroSpacing = 5;
 
         for (int i = 0; i < savedMacros.size(); i++) {
-            MacroEntry macro = savedMacros.get(i);
+            MacrosManager.SavedMacro macro = savedMacros.get(i);
             int macroY = listY + i * (macroHeight + macroSpacing) - (int)macroListScroll;
 
             if (macroY + macroHeight < listY || macroY > listY + listHeight) continue;
@@ -554,20 +568,85 @@ public class MacroRecorderGUI extends Screen {
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int mods) {
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            if (editingName) {
+                editingName = false;
+                nameBuffer = "";
+                cursorPosition = 0;
+                return true;
+            }
             close();
             return true;
         }
+
         if (editingName) {
             if (keyCode == GLFW.GLFW_KEY_ENTER) {
                 editingName = false;
+                currentMacroName = nameBuffer.trim().isEmpty() ? "New Macro" : nameBuffer.trim();
+                nameBuffer = "";
+                cursorPosition = 0;
                 return true;
             }
-            // TODO: Add logic to modify currentMacroName
+
+            if (keyCode == GLFW.GLFW_KEY_BACKSPACE) {
+                if (cursorPosition > 0) {
+                    nameBuffer = nameBuffer.substring(0, cursorPosition - 1) + nameBuffer.substring(cursorPosition);
+                    cursorPosition--;
+                }
+                return true;
+            }
+
+            if (keyCode == GLFW.GLFW_KEY_DELETE) {
+                if (cursorPosition < nameBuffer.length()) {
+                    nameBuffer = nameBuffer.substring(0, cursorPosition) + nameBuffer.substring(cursorPosition + 1);
+                }
+                return true;
+            }
+
+            if (keyCode == GLFW.GLFW_KEY_LEFT) {
+                if (cursorPosition > 0) {
+                    cursorPosition--;
+                }
+                return true;
+            }
+
+            if (keyCode == GLFW.GLFW_KEY_RIGHT) {
+                if (cursorPosition < nameBuffer.length()) {
+                    cursorPosition++;
+                }
+                return true;
+            }
+
+            if (keyCode == GLFW.GLFW_KEY_HOME) {
+                cursorPosition = 0;
+                return true;
+            }
+
+            if (keyCode == GLFW.GLFW_KEY_END) {
+                cursorPosition = nameBuffer.length();
+                return true;
+            }
+
+            return true;
         }
+
         if (keyCode == GLFW.GLFW_KEY_R) toggleRecording();
         if (keyCode == GLFW.GLFW_KEY_P && !isRecording && !isPlaying) playMacro();
         if (keyCode == GLFW.GLFW_KEY_S && !isRecording && !isPlaying) saveMacro();
         return super.keyPressed(keyCode, scanCode, mods);
+    }
+
+    @Override
+    public boolean charTyped(char chr, int keyCode) {
+        if (editingName) {
+            if (chr >= 32 && chr != 127 && chr != '/' && chr != '\\' && chr != ':' && chr != '*' && chr != '?' && chr != '"' && chr != '<' && chr != '>' && chr != '|') {
+                if (nameBuffer.length() < 50) {
+                    nameBuffer = nameBuffer.substring(0, cursorPosition) + chr + nameBuffer.substring(cursorPosition);
+                    cursorPosition++;
+                }
+            }
+            return true;
+        }
+        return super.charTyped(chr, keyCode);
     }
 
     @Override
@@ -584,26 +663,36 @@ public class MacroRecorderGUI extends Screen {
     }
 
     private void playMacro() {
-        isPlaying = true;
-        setStatusMessage("Playback started", SUCCESS_COLOR);
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                isPlaying = false;
-                setStatusMessage("Playback completed", SUCCESS_COLOR);
-            }
-        }, 2000); // TODO: Simulation
+        List<MacroRecordingSystem.MacroAction> actions = recordingSystem.getRecordedActions();
+        if (actions.isEmpty()) {
+            setStatusMessage("No actions to play", ERROR_COLOR);
+            return;
+        }
+
+        MacroPlaybackSystem.getInstance().playMacro(actions);
+        setStatusMessage("Playing macro", SUCCESS_COLOR);
     }
 
     private void saveMacro() {
-        List<MacroRecordingSystem.MacroAction> actions = recordingSystem.getRecordedActions();
-        MacroEntry newMacro = new MacroEntry(currentMacroName, actions.size());
+        try {
+            List<MacroRecordingSystem.MacroAction> actions = recordingSystem.getRecordedActions();
 
-        // TODO: Save macros
+            if (actions.isEmpty()) {
+                setStatusMessage("No actions to save", ERROR_COLOR);
+                return;
+            }
 
-        savedMacros.add(newMacro);
-        recordingSystem.clearRecording();
-        setStatusMessage("Saved macro: " + currentMacroName, SUCCESS_COLOR);
+            persistenceManager.saveMacro(currentMacroName, actions);
+
+            initSavedMacros();
+
+            recordingSystem.clearRecording();
+
+            setStatusMessage("Saved macro: " + currentMacroName, SUCCESS_COLOR);
+
+        } catch (Exception e) {
+            setStatusMessage("Failed to save macro: " + e.getMessage(), ERROR_COLOR);
+        }
     }
 
     private void resetMacro() {
@@ -612,29 +701,67 @@ public class MacroRecorderGUI extends Screen {
         setStatusMessage("Macro reinitialized", SUCCESS_COLOR);
     }
 
-    private void playSavedMacro(MacroEntry macro) {
-        setStatusMessage("Playing " + macro.name, SUCCESS_COLOR);
+    private void playSavedMacro(MacrosManager.SavedMacro macro) {
+        try {
+            List<MacroRecordingSystem.MacroAction> actions = persistenceManager.loadMacroActions(macro.id);
+            if (actions.isEmpty()) {
+                setStatusMessage("No actions found for macro: " + macro.name, ERROR_COLOR);
+                return;
+            }
+
+            MacroPlaybackSystem.getInstance().playMacro(actions);
+            setStatusMessage("Playing " + macro.name, SUCCESS_COLOR);
+        } catch (Exception e) {
+            setStatusMessage("Failed to play macro: " + e.getMessage(), ERROR_COLOR);
+        }
     }
 
-    private void editSavedMacro(MacroEntry macro) {
-        currentMacroName = macro.name;
-        selectedTab = 0;
-        setStatusMessage("Editing " + macro.name, ACCENT);
+    private void editSavedMacro(MacrosManager.SavedMacro macro) {
+        try {
+            List<MacroRecordingSystem.MacroAction> actions = persistenceManager.loadMacroActions(macro.id);
+
+            recordingSystem.loadActions(actions);
+
+            currentMacroName = macro.name;
+            selectedTab = 0;
+            setStatusMessage("Editing " + macro.name, ACCENT);
+
+        } catch (Exception e) {
+            setStatusMessage("Failed to edit macro: " + e.getMessage(), ERROR_COLOR);
+        }
     }
 
-    private void deleteSavedMacro(MacroEntry macro) {
-        savedMacros.remove(macro);
-        if (selectedMacro == macro) selectedMacro = null;
-        setStatusMessage("Deleted macro: " + macro.name, ERROR_COLOR);
+    private void deleteSavedMacro(MacrosManager.SavedMacro macro) {
+        try {
+            persistenceManager.deleteMacro(macro.id);
+
+            initSavedMacros();
+
+            if (selectedMacro == macro) {
+                selectedMacro = null;
+            }
+
+            setStatusMessage("Deleted macro: " + macro.name, SUCCESS_COLOR);
+
+        } catch (Exception e) {
+            setStatusMessage("Failed to delete macro: " + e.getMessage(), ERROR_COLOR);
+        }
     }
 
-
+    private void cleanupOrphanedFiles() {
+        try {
+            persistenceManager.cleanupOrphanedFiles();
+        } catch (Exception ignored) { }
+    }
 
     @Override
     public void close() {
         if (recordingListener != null) {
             recordingSystem.removeListener(recordingListener);
         }
+
+        cleanupOrphanedFiles();
+
         super.close();
     }
 }
