@@ -27,10 +27,12 @@ public class MacroRecordingSystem {
 
     private final boolean[] previousKeyStates = new boolean[512];
     private final boolean[] previousMouseStates = new boolean[8];
-    private double lastMouseX = 0;
-    private double lastMouseY = 0;
     private float lastYaw = 0;
     private float lastPitch = 0;
+
+    private double lastScrollX = 0.0;
+    private double lastScrollY = 0.0;
+    private boolean scrollCallbackRegistered = false;
 
     private MacroRecordingSystem() {
         this.client = MinecraftClient.getInstance();
@@ -100,7 +102,6 @@ public class MacroRecordingSystem {
     }
 
     private void initializePreviousStates() {
-        // Initialiser les états des touches du clavier
         for (int i = 0; i < previousKeyStates.length; i++) {
             try {
                 previousKeyStates[i] = InputUtil.isKeyPressed(client.getWindow().getHandle(), i);
@@ -109,10 +110,8 @@ public class MacroRecordingSystem {
             }
         }
 
-        // Initialiser les états des boutons de souris de manière sécurisée
         for (int i = 0; i < previousMouseStates.length; i++) {
             try {
-                // Utiliser les constantes GLFW pour les boutons de souris
                 int mouseButton = GLFW.GLFW_MOUSE_BUTTON_1 + i;
                 if (mouseButton <= GLFW.GLFW_MOUSE_BUTTON_8) {
                     previousMouseStates[i] = GLFW.glfwGetMouseButton(client.getWindow().getHandle(), mouseButton) == GLFW.GLFW_PRESS;
@@ -187,7 +186,6 @@ public class MacroRecordingSystem {
                     }
                 }
             } catch (Exception e) {
-                // Ignorer les erreurs pour les codes de touches invalides
                 LOGGER.warn("Failed to check key state for key {}: {}", keyCode, e.getMessage());
             }
         }
@@ -230,7 +228,6 @@ public class MacroRecordingSystem {
     }
 
     private void recordMouseActions(long timestamp) {
-        // Utiliser les constantes GLFW pour les boutons de souris
         int[] mouseButtons = {
                 GLFW.GLFW_MOUSE_BUTTON_LEFT,
                 GLFW.GLFW_MOUSE_BUTTON_RIGHT,
@@ -251,7 +248,7 @@ public class MacroRecordingSystem {
                     MacroAction action = new MacroAction(
                             currentState ? MacroAction.Type.MOUSE_PRESS : MacroAction.Type.MOUSE_RELEASE,
                             timestamp,
-                            mouseButtons[i] // Utiliser la constante GLFW au lieu de l'index
+                            mouseButtons[i]
                     );
                     recordedActions.add(action);
                     previousMouseStates[i] = currentState;
@@ -261,7 +258,14 @@ public class MacroRecordingSystem {
             }
         }
 
-        // TODO: Check mouse scroll
+        recordMouseScroll(timestamp);
+    }
+
+    private void recordMouseScroll(long timestamp) {
+        if (!scrollCallbackRegistered) {
+            registerScrollCallback();
+            scrollCallbackRegistered = true;
+        }
     }
 
     private void recordMouseMovement(long timestamp) {
@@ -282,6 +286,24 @@ public class MacroRecordingSystem {
             lastYaw = currentYaw;
             lastPitch = currentPitch;
         }
+    }
+
+    private void registerScrollCallback() {
+        GLFW.glfwSetScrollCallback(client.getWindow().getHandle(), (window, xoffset, yoffset) -> {
+            if (isRecording) {
+                long currentTime = System.currentTimeMillis() - recordingStartTime;
+
+                MacroAction scrollAction = new MacroAction(
+                        MacroAction.Type.MOUSE_SCROLL,
+                        currentTime,
+                        xoffset,
+                        yoffset
+                );
+                recordedActions.add(scrollAction);
+
+                LOGGER.debug("Recorded scroll: x={}, y={} at time {}", xoffset, yoffset, currentTime);
+            }
+        });
     }
 
     private void recordInteractions(long timestamp) {
