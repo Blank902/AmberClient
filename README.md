@@ -11,10 +11,17 @@
 5. Run Minecraft!
 
 *Press R-SHIFT to open the Click GUI.*
-*Right-click on a module to open their settings or click on the gear icon* 
+<br>*Right-click on a module to open their settings or click on the gear icon*
 
 ---
 
 ### Acknowledgements
 
-Thanks to the r/minecraftclients community on Reddit for their support, especially [u/EnzzzXD](https://www.reddit.com/user/EnzzzXD/), [u/ilmaestrofficial](https://www.reddit.com/user/ilmaestrofficial/), [u/Ok_Butterfly8951](https://www.reddit.com/user/Ok_Butterfly8951/) and [u/Classic_Lion_9491](https://www.reddit.com/user/Classic_Lion_9491/)!
+Thanks to all the contributors who helped on this project:
+<br>• [@EnzzzXD](https://github.com/enzzzh)
+<br>• [@ProgMEM-CC](https://github.com/ProgMEM-CC)
+
+Thanks to the [r/minecraftclients](https://www.reddit.com/r/minecraftclients/) community, in particular:
+<br>• [u/ilmaestrofficial](https://www.reddit.com/user/ilmaestrofficial/)
+<br>• [u/Ok_Butterfly8951](https://www.reddit.com/user/Ok_Butterfly8951/)
+<br>• [u/Classic_Lion_9491](https://www.reddit.com/user/Classic_Lion_9491/)!

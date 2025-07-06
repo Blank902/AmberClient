@@ -984,7 +984,6 @@ public class MacroRecorderGUI extends Screen {
                 return true;
             }
 
-            // Clic sur la track de la scrollbar
             if (isMouseOver((int)mx, (int)my, scrollbarX, listY, scrollbarWidth, listHeight)) {
                 float clickRatio = (float)((my - listY) / listHeight);
                 float maxScroll = Math.max(0, totalContentHeight - listHeight);
@@ -993,7 +992,6 @@ public class MacroRecorderGUI extends Screen {
             }
         }
 
-        // Gestion des clics sur les actions individuelles
         for (int i = 0; i < selectedMacroActions.size(); i++) {
             MacroRecordingSystem.MacroAction action = selectedMacroActions.get(i);
             int actionY = listY + i * (actionHeight + actionSpacing) - (int)actionsScroll;
@@ -1001,7 +999,6 @@ public class MacroRecorderGUI extends Screen {
             if (actionY + actionHeight < listY || actionY > listY + listHeight) continue;
 
             if (isMouseOver((int)mx, (int)my, listX, actionY, listWidth - 20, actionHeight)) {
-                // Logique pour sélectionner/éditer des actions
                 return true;
             }
         }
