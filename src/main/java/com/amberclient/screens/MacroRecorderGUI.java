@@ -1,5 +1,9 @@
 package com.amberclient.screens;
 
+//
+// Don't mind this mess, imma clean this later
+//
+
 import com.amberclient.AmberClient;
 import com.amberclient.modules.world.MacroRecorder.MacroPlaybackSystem;
 import com.amberclient.modules.world.MacroRecorder.MacroRecordingSystem;
@@ -35,15 +39,17 @@ public class MacroRecorderGUI extends Screen {
     private float macroListScroll = 0.0f;
     private float recorderScroll = 0.0f;
     private long lastTime = System.currentTimeMillis();
-    private final ScrollState macroListScrollState = new ScrollState();
 
     // Macro recorder state
     private boolean isRecording = false;
-    private boolean isPlaying = false;
+    private final boolean isPlaying = false;
     private String currentMacroName = "New Macro";
     private final List<MacrosManager.SavedMacro> savedMacros = new ArrayList<>();
     private MacrosManager.SavedMacro selectedMacro = null;
-    private int selectedTab = 0; // 0 = Recorder, 1 = Saved Macros
+    private List<MacroRecordingSystem.MacroAction> selectedMacroActions = new ArrayList<>();
+    private float actionsScroll = 0.0f;
+    private int selectedTab = 0; // 0 = Recorder, 1 = Saved Macros, 2 = Actions
+    private final ScrollState actionsScrollState = new ScrollState();
 
     // UI state
     private boolean editingName = false;
@@ -153,8 +159,10 @@ public class MacroRecorderGUI extends Screen {
 
         if (selectedTab == 0) {
             renderRecorderTab(context, mainPanel, mouseX, mouseY, trans);
-        } else {
+        } else if (selectedTab == 1) {
             renderSavedMacrosTab(context, mainPanel, mouseX, mouseY, trans);
+        } else if (selectedTab == 2) {
+            renderActionsTab(context, mainPanel, mouseX, mouseY, trans);
         }
 
         renderStatusBar(context, mainPanel, trans);
@@ -171,8 +179,8 @@ public class MacroRecorderGUI extends Screen {
     }
 
     private void renderTabs(DrawContext context, PanelBounds panel, int mouseX, int mouseY, float trans) {
-        String[] tabs = {"Recorder", "Saved Macros"};
-        int tabWidth = 150;
+        String[] tabs = {"Recorder", "Saved Macros", "Actions"};
+        int tabWidth = 120;
         int tabHeight = 30;
         int startX = panel.x + 10;
         int tabY = panel.y + 10;
@@ -412,6 +420,67 @@ public class MacroRecorderGUI extends Screen {
         context.drawTextWithShadow(textRenderer, versionText, panel.x + panel.width - textRenderer.getWidth(versionText) - 10, statusY + 6, TEXT);
     }
 
+    private void renderActionsTab(DrawContext context, PanelBounds panel, int mouseX, int mouseY, float trans) {
+        int contentY = panel.y + 50;
+        int contentHeight = panel.height - 100;
+
+        if (selectedMacro == null) {
+            context.drawCenteredTextWithShadow(textRenderer, "No macro selected",
+                    panel.x + panel.width / 2, contentY + contentHeight / 2, TEXT);
+            return;
+        }
+
+        context.drawTextWithShadow(textRenderer, "Actions in: " + selectedMacro.name, panel.x + 20, contentY, ACCENT);
+
+        int listX = panel.x + 20;
+        int listY = contentY + 20;
+        int listWidth = panel.width - 40;
+        int listHeight = contentHeight - 20;
+
+        context.enableScissor(listX, listY, listX + listWidth, listY + listHeight);
+
+        int actionHeight = 40;
+        int actionSpacing = 2;
+        int totalContentHeight = selectedMacroActions.size() * (actionHeight + actionSpacing) - actionSpacing;
+
+        actionsScroll = MathHelper.clamp(actionsScroll, 0, Math.max(0, totalContentHeight - listHeight));
+
+        for (int i = 0; i < selectedMacroActions.size(); i++) {
+            MacroRecordingSystem.MacroAction action = selectedMacroActions.get(i);
+            int actionY = listY + i * (actionHeight + actionSpacing) - (int)actionsScroll;
+
+            if (actionY + actionHeight < listY || actionY > listY + listHeight) continue;
+
+            boolean isHovered = isMouseOver(mouseX, mouseY, listX, actionY, listWidth - 20, actionHeight);
+
+            int bgColor = isHovered ? applyTransparency(new Color(50, 50, 55, 220).getRGB(), trans) :
+                    applyTransparency(new Color(40, 40, 45, 200).getRGB(), trans);
+
+            context.fill(listX, actionY, listX + listWidth - 20, actionY + actionHeight, bgColor);
+            drawBorder(context, listX, actionY, listWidth - 20, actionHeight);
+
+            String actionType = getActionTypeString(action);
+            context.drawTextWithShadow(textRenderer, "#" + (i + 1) + " " + actionType,
+                    listX + 10, actionY + 8, ACCENT);
+
+            String actionDetails = getActionDetails(action);
+            context.drawTextWithShadow(textRenderer, actionDetails,
+                    listX + 10, actionY + 22, new Color(180, 180, 180).getRGB());
+        }
+
+        // Scrollbar
+        if (totalContentHeight > listHeight) {
+            float scrollRatio = (float) listHeight / totalContentHeight;
+            int thumbHeight = Math.max(20, (int)(listHeight * scrollRatio));
+            int thumbY = listY + (int)((listHeight - thumbHeight) * (actionsScroll / Math.max(1, totalContentHeight - listHeight)));
+            context.fill(listX + listWidth - 15, listY, listX + listWidth - 10, listY + listHeight,
+                    applyTransparency(new Color(50, 50, 55).getRGB(), trans));
+            context.fill(listX + listWidth - 15, thumbY, listX + listWidth - 10, thumbY + thumbHeight, ACCENT);
+        }
+
+        context.disableScissor();
+    }
+
     private void drawBorder(DrawContext context, int x, int y, int w, int h) {
         context.drawHorizontalLine(x, x + w, y, OUTLINE);
         context.drawHorizontalLine(x, x + w, y + h, OUTLINE);
@@ -435,8 +504,8 @@ public class MacroRecorderGUI extends Screen {
 
         PanelBounds panel = calcMainPanel();
 
-        String[] tabs = {"Recorder", "Saved Macros"};
-        int tabWidth = 150;
+        String[] tabs = {"Recorder", "Saved Macros", "Actions"};
+        int tabWidth = 120;
         int tabHeight = 30;
         int startX = panel.x + 10;
         int tabY = panel.y + 10;
@@ -452,9 +521,13 @@ public class MacroRecorderGUI extends Screen {
         if (selectedTab == 0) {
             double adjustedMy = my + recorderScroll;
             return handleRecorderTabClick(mx, adjustedMy, button, panel);
-        } else {
+        } else if (selectedTab == 1) {
             return handleSavedMacrosTabClick(mx, my, button, panel);
+        } else if (selectedTab == 2) {
+            return handleActionsTabClick(mx, my, button, panel);
         }
+
+        return false;
     }
 
     private boolean handleRecorderTabClick(double mx, double my, int button, PanelBounds panel) {
@@ -526,6 +599,14 @@ public class MacroRecorderGUI extends Screen {
 
             if (isMouseOver((int)mx, (int)my, listX, macroY, listWidth - 20, macroHeight)) {
                 selectedMacro = macro;
+
+                try {
+                    selectedMacroActions = persistenceManager.loadMacroActions(macro.id);
+                } catch (Exception e) {
+                    selectedMacroActions.clear();
+                    setStatusMessage("Failed to load macro actions: " + e.getMessage(), ERROR_COLOR);
+                }
+
                 int buttonY = macroY + 10;
                 int buttonWidth = 60;
                 int playButtonX = listX + listWidth - 200;
@@ -561,6 +642,10 @@ public class MacroRecorderGUI extends Screen {
             int listHeight = panel.height - 120;
             int totalContentHeight = savedMacros.size() * 55 - 5;
             macroListScroll = (float) MathHelper.clamp(macroListScroll - scrollY * 15, 0, Math.max(0, totalContentHeight - listHeight));
+        } else if (selectedTab == 2) {
+            int listHeight = panel.height - 120;
+            int totalContentHeight = selectedMacroActions.size() * 42 - 2;
+            actionsScroll = (float) MathHelper.clamp(actionsScroll - scrollY * 15, 0, Math.max(0, totalContentHeight - listHeight));
         }
         return super.mouseScrolled(mx, my, scrollX, scrollY);
     }
@@ -746,6 +831,219 @@ public class MacroRecorderGUI extends Screen {
         } catch (Exception e) {
             setStatusMessage("Failed to delete macro: " + e.getMessage(), ERROR_COLOR);
         }
+    }
+
+    private String getActionTypeString(MacroRecordingSystem.MacroAction action) {
+        return switch (action.getType()) {
+            case MOUSE_PRESS, MOUSE_RELEASE -> "Mouse Click";
+            case MOUSE_MOVE -> "Mouse Move";
+            case MOUSE_SCROLL -> "Mouse Scroll";
+            case KEY_PRESS, KEY_RELEASE -> "Key Press";
+            case KEYBINDING_PRESS -> "Keybinding";
+            case BLOCK_INTERACT -> "Block Interact";
+            case ENTITY_INTERACT -> "Entity Interact";
+            case CHAT_MESSAGE -> "Chat Message";
+            case INVENTORY_ACTION -> "Inventory Action";
+            default -> "Unknown";
+        };
+    }
+
+    private String getActionDetails(MacroRecordingSystem.MacroAction action) {
+        switch (action.getType()) {
+            case KEY_PRESS:
+            case KEY_RELEASE:
+                if (action.getData() instanceof Number) {
+                    return "Key: " + getKeyName(((Number) action.getData()).intValue()) + " | " + formatTimestamp(action.getTimestamp());
+                }
+                return "Key: " + action.getData() + " | " + formatTimestamp(action.getTimestamp());
+            case KEYBINDING_PRESS:
+                return "Keybinding: " + action.getData() + " | " + formatTimestamp(action.getTimestamp());
+            case MOUSE_PRESS:
+            case MOUSE_RELEASE:
+                if (action.getData() instanceof Number) {
+                    return "Button: " + getMouseButtonName(((Number) action.getData()).intValue()) + " | " + formatTimestamp(action.getTimestamp());
+                }
+                return "Button: " + action.getData() + " | " + formatTimestamp(action.getTimestamp());
+            case MOUSE_MOVE:
+                return "Position: " + action.getData() + " | " + formatTimestamp(action.getTimestamp());
+            case MOUSE_SCROLL:
+                return "Scroll: " + action.getData() + " | " + formatTimestamp(action.getTimestamp());
+            case BLOCK_INTERACT:
+                return "Block: " + action.getData() + " | " + formatTimestamp(action.getTimestamp());
+            case ENTITY_INTERACT:
+                return "Entity: " + action.getData() + " | " + formatTimestamp(action.getTimestamp());
+            case CHAT_MESSAGE:
+                return "Message: " + action.getData() + " | " + formatTimestamp(action.getTimestamp());
+            case INVENTORY_ACTION:
+                return "Inventory: " + action.getData() + " | " + formatTimestamp(action.getTimestamp());
+            default:
+                return "Unknown action | " + formatTimestamp(action.getTimestamp());
+        }
+    }
+
+    private String getKeyName(int keyCode) {
+        return switch (keyCode) {
+            case GLFW.GLFW_KEY_A -> "A";
+            case GLFW.GLFW_KEY_B -> "B";
+            case GLFW.GLFW_KEY_C -> "C";
+            case GLFW.GLFW_KEY_D -> "D";
+            case GLFW.GLFW_KEY_E -> "E";
+            case GLFW.GLFW_KEY_F -> "F";
+            case GLFW.GLFW_KEY_G -> "G";
+            case GLFW.GLFW_KEY_H -> "H";
+            case GLFW.GLFW_KEY_I -> "I";
+            case GLFW.GLFW_KEY_J -> "J";
+            case GLFW.GLFW_KEY_K -> "K";
+            case GLFW.GLFW_KEY_L -> "L";
+            case GLFW.GLFW_KEY_M -> "M";
+            case GLFW.GLFW_KEY_N -> "N";
+            case GLFW.GLFW_KEY_O -> "O";
+            case GLFW.GLFW_KEY_P -> "P";
+            case GLFW.GLFW_KEY_Q -> "Q";
+            case GLFW.GLFW_KEY_R -> "R";
+            case GLFW.GLFW_KEY_S -> "S";
+            case GLFW.GLFW_KEY_T -> "T";
+            case GLFW.GLFW_KEY_U -> "U";
+            case GLFW.GLFW_KEY_V -> "V";
+            case GLFW.GLFW_KEY_W -> "W";
+            case GLFW.GLFW_KEY_X -> "X";
+            case GLFW.GLFW_KEY_Y -> "Y";
+            case GLFW.GLFW_KEY_Z -> "Z";
+            case GLFW.GLFW_KEY_0 -> "0";
+            case GLFW.GLFW_KEY_1 -> "1";
+            case GLFW.GLFW_KEY_2 -> "2";
+            case GLFW.GLFW_KEY_3 -> "3";
+            case GLFW.GLFW_KEY_4 -> "4";
+            case GLFW.GLFW_KEY_5 -> "5";
+            case GLFW.GLFW_KEY_6 -> "6";
+            case GLFW.GLFW_KEY_7 -> "7";
+            case GLFW.GLFW_KEY_8 -> "8";
+            case GLFW.GLFW_KEY_9 -> "9";
+            case GLFW.GLFW_KEY_SPACE -> "Space";
+            case GLFW.GLFW_KEY_ENTER -> "Enter";
+            case GLFW.GLFW_KEY_TAB -> "Tab";
+            case GLFW.GLFW_KEY_BACKSPACE -> "Backspace";
+            case GLFW.GLFW_KEY_DELETE -> "Delete";
+            case GLFW.GLFW_KEY_ESCAPE -> "Escape";
+            case GLFW.GLFW_KEY_LEFT_SHIFT -> "Left Shift";
+            case GLFW.GLFW_KEY_RIGHT_SHIFT -> "Right Shift";
+            case GLFW.GLFW_KEY_LEFT_CONTROL -> "Left Ctrl";
+            case GLFW.GLFW_KEY_RIGHT_CONTROL -> "Right Ctrl";
+            case GLFW.GLFW_KEY_LEFT_ALT -> "Left Alt";
+            case GLFW.GLFW_KEY_RIGHT_ALT -> "Right Alt";
+            case GLFW.GLFW_KEY_UP -> "Up Arrow";
+            case GLFW.GLFW_KEY_DOWN -> "Down Arrow";
+            case GLFW.GLFW_KEY_LEFT -> "Left Arrow";
+            case GLFW.GLFW_KEY_RIGHT -> "Right Arrow";
+            default -> "Key " + keyCode;
+        };
+    }
+
+    private String getMouseButtonName(int button) {
+        return switch (button) {
+            case GLFW.GLFW_MOUSE_BUTTON_LEFT -> "Left Click";
+            case GLFW.GLFW_MOUSE_BUTTON_RIGHT -> "Right Click";
+            case GLFW.GLFW_MOUSE_BUTTON_MIDDLE -> "Middle Click";
+            default -> "Button " + button;
+        };
+    }
+
+    private String formatTimestamp(long timestamp) {
+        return String.format("%.2fs", timestamp / 1000.0);
+    }
+
+    private boolean handleActionsTabClick(double mx, double my, int button, PanelBounds panel) {
+        if (selectedMacro == null) {
+            return super.mouseClicked(mx, my, button);
+        }
+
+        int contentY = panel.y + 50;
+        int listX = panel.x + 20;
+        int listY = contentY + 20;
+        int listWidth = panel.width - 40;
+        int listHeight = panel.height - 120;
+
+        int actionHeight = 40;
+        int actionSpacing = 2;
+        int totalContentHeight = selectedMacroActions.size() * (actionHeight + actionSpacing) - actionSpacing;
+
+        // Vérifier si on clique sur la scrollbar
+        if (totalContentHeight > listHeight) {
+            float scrollRatio = (float) listHeight / totalContentHeight;
+            int thumbHeight = Math.max(20, (int)(listHeight * scrollRatio));
+            int thumbY = listY + (int)((listHeight - thumbHeight) * (actionsScroll / Math.max(1, totalContentHeight - listHeight)));
+
+            int scrollbarX = listX + listWidth - 15;
+            int scrollbarWidth = 5;
+
+            // Clic sur le thumb de la scrollbar
+            if (isMouseOver((int)mx, (int)my, scrollbarX, thumbY, scrollbarWidth, thumbHeight)) {
+                actionsScrollState.isDragging = true;
+                actionsScrollState.dragStartY = (int)my;
+                actionsScrollState.dragStartOffset = actionsScroll;
+                return true;
+            }
+
+            // Clic sur la track de la scrollbar
+            if (isMouseOver((int)mx, (int)my, scrollbarX, listY, scrollbarWidth, listHeight)) {
+                float clickRatio = (float)((my - listY) / listHeight);
+                float maxScroll = Math.max(0, totalContentHeight - listHeight);
+                actionsScroll = MathHelper.clamp(clickRatio * maxScroll, 0, maxScroll);
+                return true;
+            }
+        }
+
+        // Gestion des clics sur les actions individuelles
+        for (int i = 0; i < selectedMacroActions.size(); i++) {
+            MacroRecordingSystem.MacroAction action = selectedMacroActions.get(i);
+            int actionY = listY + i * (actionHeight + actionSpacing) - (int)actionsScroll;
+
+            if (actionY + actionHeight < listY || actionY > listY + listHeight) continue;
+
+            if (isMouseOver((int)mx, (int)my, listX, actionY, listWidth - 20, actionHeight)) {
+                // Logique pour sélectionner/éditer des actions
+                return true;
+            }
+        }
+
+        return super.mouseClicked(mx, my, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mx, double my, int button, double deltaX, double deltaY) {
+        if (actionsScrollState.isDragging && selectedMacro != null) {
+            PanelBounds panel = calcMainPanel();
+            int contentY = panel.y + 50;
+            int listY = contentY + 20;
+            int listHeight = panel.height - 120;
+
+            int actionHeight = 40;
+            int actionSpacing = 2;
+            int totalContentHeight = selectedMacroActions.size() * (actionHeight + actionSpacing) - actionSpacing;
+
+            if (totalContentHeight > listHeight) {
+                int dragDistance = (int)my - actionsScrollState.dragStartY;
+                float scrollRatio = (float) listHeight / totalContentHeight;
+                float maxScroll = Math.max(0, totalContentHeight - listHeight);
+
+                float scrollDelta = dragDistance / scrollRatio;
+                actionsScroll = MathHelper.clamp(actionsScrollState.dragStartOffset + scrollDelta, 0, maxScroll);
+            }
+
+            return true;
+        }
+
+        return super.mouseDragged(mx, my, button, deltaX, deltaY);
+    }
+
+    @Override
+    public boolean mouseReleased(double mx, double my, int button) {
+        if (actionsScrollState.isDragging) {
+            actionsScrollState.isDragging = false;
+            return true;
+        }
+
+        return super.mouseReleased(mx, my, button);
     }
 
     private void cleanupOrphanedFiles() {

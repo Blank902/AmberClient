@@ -189,31 +189,6 @@ public class MacroRecordingSystem {
                 LOGGER.warn("Failed to check key state for key {}: {}", keyCode, e.getMessage());
             }
         }
-
-        checkMinecraftKeybindings(timestamp);
-    }
-
-    private void checkMinecraftKeybindings(long timestamp) {
-        checkKeybinding(client.options.forwardKey, timestamp, "forward");
-        checkKeybinding(client.options.backKey, timestamp, "back");
-        checkKeybinding(client.options.leftKey, timestamp, "left");
-        checkKeybinding(client.options.rightKey, timestamp, "right");
-        checkKeybinding(client.options.jumpKey, timestamp, "jump");
-        checkKeybinding(client.options.sneakKey, timestamp, "sneak");
-        checkKeybinding(client.options.sprintKey, timestamp, "sprint");
-
-        checkKeybinding(client.options.attackKey, timestamp, "attack");
-        checkKeybinding(client.options.useKey, timestamp, "use");
-        checkKeybinding(client.options.pickItemKey, timestamp, "pickItem");
-        checkKeybinding(client.options.dropKey, timestamp, "drop");
-        checkKeybinding(client.options.inventoryKey, timestamp, "inventory");
-        checkKeybinding(client.options.chatKey, timestamp, "chat");
-        checkKeybinding(client.options.playerListKey, timestamp, "playerList");
-        checkKeybinding(client.options.commandKey, timestamp, "command");
-
-        for (int i = 0; i < 9; i++) {
-            checkKeybinding(client.options.hotbarKeys[i], timestamp, "hotbar_" + (i + 1));
-        }
     }
 
     private void checkKeybinding(KeyBinding keyBinding, long timestamp, String actionName) {
@@ -309,14 +284,35 @@ public class MacroRecordingSystem {
     private void recordInteractions(long timestamp) {
         if (client.player == null) return;
 
-        // TODO: Record interactions with blocks
         if (client.crosshairTarget != null) {
             if (client.crosshairTarget.getType() == HitResult.Type.BLOCK) {
                 BlockHitResult blockHit = (BlockHitResult) client.crosshairTarget;
-                // TODO: will be used for reproduction
+
+                // Record block interaction data
+                MacroAction blockInteraction = new MacroAction(
+                        MacroAction.Type.BLOCK_INTERACT,
+                        timestamp,
+                        blockHit.getBlockPos().toString(),
+                        blockHit.getSide().toString()
+                );
+                recordedActions.add(blockInteraction);
+
+                LOGGER.debug("Recorded block interaction at {} on face {}",
+                        blockHit.getBlockPos(), blockHit.getSide());
+
             } else if (client.crosshairTarget.getType() == HitResult.Type.ENTITY) {
                 EntityHitResult entityHit = (EntityHitResult) client.crosshairTarget;
-                // TODO: will be used for reproduction
+
+                MacroAction entityInteraction = new MacroAction(
+                        MacroAction.Type.ENTITY_INTERACT,
+                        timestamp,
+                        entityHit.getEntity().getUuidAsString(),
+                        entityHit.getEntity().getType().toString()
+                );
+                recordedActions.add(entityInteraction);
+
+                LOGGER.debug("Recorded entity interaction with {} (UUID: {})",
+                        entityHit.getEntity().getType(), entityHit.getEntity().getUuidAsString());
             }
         }
     }
