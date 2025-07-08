@@ -55,6 +55,7 @@ public class ModuleManager {
         registerModule(new NoHurtCam());
         registerModule(new AimAssist());
         registerModule(new MacroRecorder());
+        registerModule(new AutoPotion());
     }
 
     public static ModuleManager getInstance() {
