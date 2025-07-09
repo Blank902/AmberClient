@@ -3,7 +3,9 @@ package com.amberclient.modules.world.MacroRecorder;
 import net.minecraft.client.MinecraftClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.glfw.GLFW;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 public class MacroPlaybackSystem {
@@ -87,11 +89,11 @@ public class MacroPlaybackSystem {
 
         switch (action.getType()) {
             case KEY_PRESS:
-                simulateKeyPress((Integer) action.getData(), true);
+                simulateKeyPress(getIntegerFromData(action.getData()), true);
                 break;
 
             case KEY_RELEASE:
-                simulateKeyPress((Integer) action.getData(), false);
+                simulateKeyPress(getIntegerFromData(action.getData()), false);
                 break;
 
             case KEYBINDING_PRESS:
@@ -99,17 +101,17 @@ public class MacroPlaybackSystem {
                 break;
 
             case MOUSE_PRESS:
-                simulateMouseClick((Integer) action.getData(), true);
+                simulateMouseClick(getIntegerFromData(action.getData()), true);
                 break;
 
             case MOUSE_RELEASE:
-                simulateMouseClick((Integer) action.getData(), false);
+                simulateMouseClick(getIntegerFromData(action.getData()), false);
                 break;
 
             case MOUSE_MOVE:
-                if (action.getData() instanceof Float && action.getData2() instanceof Float) {
-                    float yaw = (Float) action.getData();
-                    float pitch = (Float) action.getData2();
+                if (action.getData() instanceof Number && action.getData2() instanceof Number) {
+                    float yaw = ((Number) action.getData()).floatValue();
+                    float pitch = ((Number) action.getData2()).floatValue();
                     simulateMouseMove(yaw, pitch);
                 }
                 break;
@@ -117,6 +119,22 @@ public class MacroPlaybackSystem {
             default:
                 LOGGER.debug("Action type not implemented for playback: {}", action.getType());
                 break;
+        }
+    }
+
+    /**
+     * Safely converts data to integer, handling both Integer and Double types
+     */
+    private int getIntegerFromData(Object data) {
+        if (data instanceof Integer) {
+            return (Integer) data;
+        } else if (data instanceof Double) {
+            return ((Double) data).intValue();
+        } else if (data instanceof Number) {
+            return ((Number) data).intValue();
+        } else {
+            LOGGER.warn("Unexpected data type for integer conversion: {}", data.getClass().getSimpleName());
+            return 0;
         }
     }
 
@@ -131,8 +149,58 @@ public class MacroPlaybackSystem {
     }
 
     private void simulateMouseClick(int button, boolean pressed) {
-        LOGGER.debug("Simulating mouse button {} {}", button, pressed ? "press" : "release");
-        // TODO: Implement click simulation
+        LOGGER.debug("Enhanced mouse button simulation {} {}", button, pressed ? "press" : "release");
+
+        // Safety checks
+        if (client == null) {
+            LOGGER.warn("MinecraftClient is null, cannot simulate mouse click");
+            return;
+        }
+
+        if (client.getWindow() == null) {
+            LOGGER.warn("Window is null, cannot simulate mouse click");
+            return;
+        }
+
+        if (client.player == null) {
+            LOGGER.warn("Player is null, cannot simulate mouse click");
+            return;
+        }
+
+        if (client.isPaused() || client.currentScreen != null) {
+            LOGGER.debug("Game is paused or in menu, skipping mouse click simulation");
+            return;
+        }
+
+        client.execute(() -> {
+            try {
+                long windowHandle = client.getWindow().getHandle();
+
+                if (windowHandle == 0) {
+                    LOGGER.warn("Invalid window handle, cannot simulate mouse click");
+                    return;
+                }
+
+                boolean wasGrabbed = client.mouse.isCursorLocked();
+
+                Method onMouseButtonMethod = client.mouse.getClass().getDeclaredMethod(
+                        "onMouseButton", long.class, int.class, int.class, int.class
+                );
+                onMouseButtonMethod.setAccessible(true);
+
+                onMouseButtonMethod.invoke(client.mouse, windowHandle, button,
+                        pressed ? GLFW.GLFW_PRESS : GLFW.GLFW_RELEASE, 0);
+
+                if (wasGrabbed && !client.mouse.isCursorLocked()) {
+                    client.mouse.lockCursor();
+                }
+
+                LOGGER.debug("Successfully simulated mouse button {} {}", button, pressed ? "press" : "release");
+
+            } catch (Exception e) {
+                LOGGER.error("Enhanced mouse click simulation failed for button {}: {}", button, e.getMessage(), e);
+            }
+        });
     }
 
     private void simulateMouseMove(float yaw, float pitch) {
