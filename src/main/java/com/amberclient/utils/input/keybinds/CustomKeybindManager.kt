@@ -22,7 +22,6 @@ object CustomKeybindManager {
         if (isInitialized) return
         isInitialized = true
 
-        // Charger la configuration
         KeybindConfigManager.loadConfig()
         loadKeybindsFromConfig()
 
@@ -36,7 +35,6 @@ object CustomKeybindManager {
             try {
                 val keyCode = keyCodeStr.toInt()
 
-                // Rechercher le callback correspondant
                 val callback = actionCallbacks[keybindData.actionId]
                 if (callback != null) {
                     val action = KeybindAction(
@@ -71,14 +69,12 @@ object CustomKeybindManager {
         requiresPlayer: Boolean = true,
         callback: Runnable
     ) {
-        // Enregistrer le callback pour pouvoir le restaurer plus tard
         registerActionCallback(actionId, callback)
 
         val action = KeybindAction(actionId, description, callback, requiresPlayer)
         keyBindings.computeIfAbsent(keyCode) { mutableListOf() }.add(action)
         keyStates[keyCode] = false
 
-        // Sauvegarder dans la configuration
         KeybindConfigManager.setCustomKeybind(keyCode.toString(), actionId, description, requiresPlayer)
 
         println("[CustomKeybindManager] Bound key ${getKeyName(keyCode)} to action: $description")
@@ -91,7 +87,6 @@ object CustomKeybindManager {
             keyStates.remove(keyCode)
         }
 
-        // Supprimer de la configuration
         KeybindConfigManager.removeCustomKeybind(keyCode.toString())
 
         println("[CustomKeybindManager] Unbound action $actionId from key ${getKeyName(keyCode)}")
@@ -101,7 +96,6 @@ object CustomKeybindManager {
         keyBindings.remove(keyCode)
         keyStates.remove(keyCode)
 
-        // Supprimer de la configuration
         KeybindConfigManager.removeCustomKeybind(keyCode.toString())
 
         println("[CustomKeybindManager] Unbound all actions from key ${getKeyName(keyCode)}")
@@ -213,7 +207,6 @@ object CustomKeybindManager {
         val upperName = keyName.uppercase()
 
         return when (upperName) {
-            // Touches spéciales
             "SPACE" -> GLFW.GLFW_KEY_SPACE
             "ENTER" -> GLFW.GLFW_KEY_ENTER
             "TAB" -> GLFW.GLFW_KEY_TAB
@@ -245,13 +238,11 @@ object CustomKeybindManager {
             "LSUPER", "LEFT_SUPER" -> GLFW.GLFW_KEY_LEFT_SUPER
             "RSUPER", "RIGHT_SUPER" -> GLFW.GLFW_KEY_RIGHT_SUPER
 
-            // Flèches directionnelles
             "UP", "ARROW_UP" -> GLFW.GLFW_KEY_UP
             "DOWN", "ARROW_DOWN" -> GLFW.GLFW_KEY_DOWN
             "LEFT", "ARROW_LEFT" -> GLFW.GLFW_KEY_LEFT
             "RIGHT", "ARROW_RIGHT" -> GLFW.GLFW_KEY_RIGHT
 
-            // Symboles
             "APOSTROPHE", "'" -> GLFW.GLFW_KEY_APOSTROPHE
             "COMMA", "," -> GLFW.GLFW_KEY_COMMA
             "MINUS", "-" -> GLFW.GLFW_KEY_MINUS
@@ -264,7 +255,6 @@ object CustomKeybindManager {
             "RIGHT_BRACKET", "]" -> GLFW.GLFW_KEY_RIGHT_BRACKET
             "GRAVE_ACCENT", "`" -> GLFW.GLFW_KEY_GRAVE_ACCENT
 
-            // Pavé numérique
             "KP_0", "NUMPAD_0" -> GLFW.GLFW_KEY_KP_0
             "KP_1", "NUMPAD_1" -> GLFW.GLFW_KEY_KP_1
             "KP_2", "NUMPAD_2" -> GLFW.GLFW_KEY_KP_2
@@ -284,7 +274,6 @@ object CustomKeybindManager {
             "KP_EQUAL", "NUMPAD_EQUAL" -> GLFW.GLFW_KEY_KP_EQUAL
 
             else -> {
-                // Essayer un seul caractère (chiffres et lettres)
                 if (upperName.length == 1) {
                     val char = upperName[0]
                     when (char) {
@@ -293,7 +282,6 @@ object CustomKeybindManager {
                         else -> GLFW.GLFW_KEY_UNKNOWN
                     }
                 }
-                // Essayer les touches de fonction (F1-F25)
                 else if (upperName.startsWith("F") && upperName.length <= 3) {
                     try {
                         val num = upperName.substring(1).toInt()
@@ -303,7 +291,6 @@ object CustomKeybindManager {
                         GLFW.GLFW_KEY_UNKNOWN
                     }
                 }
-                // Essayer les touches numpad avec format "NUMPAD X"
                 else if (upperName.startsWith("NUMPAD ")) {
                     val numpadKey = upperName.substring(7)
                     when (numpadKey) {

@@ -18,9 +18,11 @@ import com.amberclient.modules.world.MacroRecorder.MacroRecorder;
 import com.amberclient.utils.input.keybinds.KeybindConfigManager;
 import com.amberclient.utils.input.keybinds.CustomKeybindManager;
 import com.amberclient.utils.input.keybinds.KeybindsManager;
+import com.amberclient.utils.minecraft.MinecraftUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 
+import java.io.Console;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -129,7 +131,9 @@ public class ModuleManager {
 
     public void handleKeyInputs() {
         MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player == null) return;
+        if (client.player == null || MinecraftUtils.isChatOpen()) {
+            return;
+        }
 
         for (Map.Entry<String, KeyBinding> entry : KeybindsManager.INSTANCE.getKeyBindings().entrySet()) {
             KeyBinding keyBinding = entry.getValue();
@@ -166,6 +170,11 @@ public class ModuleManager {
                 new Runnable() {
                     @Override
                     public void run() {
+                        // Check if chat is open before toggling
+                        if (MinecraftUtils.isChatOpen()) {
+                            return;
+                        }
+
                         module.toggle();
                         System.out.println("Toggled " + module.getName() + " via custom keybind");
                     }

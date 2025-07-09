@@ -104,6 +104,11 @@ public class MinecraftUtils {
         return "";
     }
 
+    public static boolean isChatOpen() {
+        MinecraftClient client = MinecraftClient.getInstance();
+        return client.currentScreen instanceof net.minecraft.client.gui.screen.ChatScreen;
+    }
+
     public static void sendChatMessage(Text message) {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc != null && mc.inGameHud != null)
