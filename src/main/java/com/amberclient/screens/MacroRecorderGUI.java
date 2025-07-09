@@ -754,8 +754,9 @@ public class MacroRecorderGUI extends Screen {
             return;
         }
 
+        close();
+
         MacroPlaybackSystem.getInstance().playMacro(actions);
-        setStatusMessage("Playing macro", SUCCESS_COLOR);
     }
 
     private void saveMacro() {
@@ -794,8 +795,17 @@ public class MacroRecorderGUI extends Screen {
                 return;
             }
 
-            MacroPlaybackSystem.getInstance().playMacro(actions);
-            setStatusMessage("Playing " + macro.name, SUCCESS_COLOR);
+            close();
+
+            new Thread(() -> {
+                try {
+                    Thread.sleep(75);
+                    MacroPlaybackSystem.getInstance().playMacro(actions);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }).start();
+
         } catch (Exception e) {
             setStatusMessage("Failed to play macro: " + e.getMessage(), ERROR_COLOR);
         }
