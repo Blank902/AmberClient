@@ -4,6 +4,7 @@ import com.amberclient.modules.player.FastPlace;
 import com.amberclient.modules.combat.Hitbox;
 import com.amberclient.modules.render.EntityESP;
 import com.amberclient.utils.accessors.EntityMixinAccessor;
+import com.amberclient.utils.module.ModuleManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -31,6 +32,7 @@ public class MinecraftClientMixin {
             EntityHitResult entityHitResult = (EntityHitResult) client.crosshairTarget;
             Entity target = entityHitResult.getEntity();
             Vec3d targetPos = target.getPos().add(0, target.getHeight() / 2, 0);
+            assert hitboxModule != null;
             hitboxModule.getRotationFaker().faceVectorPacket(targetPos);
         }
 
@@ -44,6 +46,8 @@ public class MinecraftClientMixin {
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void onTick(CallbackInfo ci) {
+        ModuleManager.getInstance().onTick();
+
         if (FastPlace.isFastPlaceEnabled && ((MinecraftClient) (Object) this).options.useKey.isPressed()) {
             int randomDelay = FastPlace.getRandomDelay();
 

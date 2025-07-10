@@ -2,6 +2,8 @@ package com.amberclient.events.core;
 
 import com.amberclient.events.network.PacketReceiveListener;
 import com.amberclient.events.player.*;
+import com.amberclient.events.network.PacketEvent;
+import com.amberclient.events.player.SendMovementPacketsEvent;
 import net.minecraft.network.packet.Packet;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -14,6 +16,10 @@ public class EventManager {
     private final List<PacketReceiveListener> packetReceiveListeners = new ArrayList<>();
     private final List<PreVelocityListener> preVelocityListeners = new ArrayList<>();
     private final List<PostVelocityListener> postVelocityListeners = new ArrayList<>();
+
+    // Ajout des nouveaux types d'événements
+    private final List<PacketSendListener> packetSendListeners = new ArrayList<>();
+    private final List<SendMovementPacketsListener> sendMovementPacketsListeners = new ArrayList<>();
 
     private final List<Object> registeredObjects = new ArrayList<>();
 
@@ -52,6 +58,8 @@ public class EventManager {
         packetReceiveListeners.removeIf(listener -> isFromObject(listener, obj));
         preVelocityListeners.removeIf(listener -> isFromObject(listener, obj));
         postVelocityListeners.removeIf(listener -> isFromObject(listener, obj));
+        packetSendListeners.removeIf(listener -> isFromObject(listener, obj));
+        sendMovementPacketsListeners.removeIf(listener -> isFromObject(listener, obj));
     }
 
     private boolean isFromObject(Object listener, Object obj) {
@@ -78,6 +86,12 @@ public class EventManager {
             } else if (paramType.getSimpleName().contains("PostVelocity")) {
                 postVelocityListeners.add(new MethodListener(obj, method)::invokePostVelocity);
             }
+            // Ajout des nouveaux types d'événements
+            else if (paramType == PacketEvent.Send.class || paramType.getSimpleName().contains("PacketEvent")) {
+                packetSendListeners.add(new MethodListener(obj, method)::invokePacketSend);
+            } else if (paramType == SendMovementPacketsEvent.Pre.class || paramType.getSimpleName().contains("SendMovementPackets")) {
+                sendMovementPacketsListeners.add(new MethodListener(obj, method)::invokeSendMovementPackets);
+            }
         }
     }
 
@@ -92,6 +106,10 @@ public class EventManager {
             preVelocityListeners.add((PreVelocityListener) listener);
         } else if (type == PostVelocityListener.class && listener instanceof PostVelocityListener) {
             postVelocityListeners.add((PostVelocityListener) listener);
+        } else if (type == PacketSendListener.class && listener instanceof PacketSendListener) {
+            packetSendListeners.add((PacketSendListener) listener);
+        } else if (type == SendMovementPacketsListener.class && listener instanceof SendMovementPacketsListener) {
+            sendMovementPacketsListeners.add((SendMovementPacketsListener) listener);
         }
     }
 
@@ -106,6 +124,10 @@ public class EventManager {
             preVelocityListeners.remove(listener);
         } else if (type == PostVelocityListener.class) {
             postVelocityListeners.remove(listener);
+        } else if (type == PacketSendListener.class) {
+            packetSendListeners.remove(listener);
+        } else if (type == SendMovementPacketsListener.class) {
+            sendMovementPacketsListeners.remove(listener);
         }
     }
 
@@ -139,7 +161,29 @@ public class EventManager {
         }
     }
 
-    private static class MethodListener implements PreMotionListener, PostMotionListener, PacketReceiveListener, PreVelocityListener, PostVelocityListener {
+    // Nouvelles méthodes pour les événements PacketSend et SendMovementPackets
+    public void firePacketSend(PacketEvent.Send event) {
+        for (PacketSendListener listener : new ArrayList<>(packetSendListeners)) {
+            listener.onPacketSend(event);
+        }
+    }
+
+    public void fireSendMovementPackets(SendMovementPacketsEvent.Pre event) {
+        for (SendMovementPacketsListener listener : new ArrayList<>(sendMovementPacketsListeners)) {
+            listener.onSendMovementPackets(event);
+        }
+    }
+
+    // Nouvelles interfaces pour les listeners
+    public interface PacketSendListener {
+        void onPacketSend(PacketEvent.Send event);
+    }
+
+    public interface SendMovementPacketsListener {
+        void onSendMovementPackets(SendMovementPacketsEvent.Pre event);
+    }
+
+    private static class MethodListener implements PreMotionListener, PostMotionListener, PacketReceiveListener, PreVelocityListener, PostVelocityListener, PacketSendListener, SendMovementPacketsListener {
         private final Object owner;
         private final Method method;
 
@@ -192,6 +236,22 @@ public class EventManager {
             }
         }
 
+        public void invokePacketSend(PacketEvent.Send event) {
+            try {
+                method.invoke(owner, event);
+            } catch (Exception e) {
+                System.err.println("Error invoking PacketSend event handler: " + e.getMessage());
+            }
+        }
+
+        public void invokeSendMovementPackets(SendMovementPacketsEvent.Pre event) {
+            try {
+                method.invoke(owner, event);
+            } catch (Exception e) {
+                System.err.println("Error invoking SendMovementPackets event handler: " + e.getMessage());
+            }
+        }
+
         @Override
         public void onPreMotion() {
             invokePreMotion();
@@ -215,6 +275,16 @@ public class EventManager {
         @Override
         public void onPostVelocity(PostVelocityEvent event) {
             invokePostVelocity(event);
+        }
+
+        @Override
+        public void onPacketSend(PacketEvent.Send event) {
+            invokePacketSend(event);
+        }
+
+        @Override
+        public void onSendMovementPackets(SendMovementPacketsEvent.Pre event) {
+            invokeSendMovementPackets(event);
         }
     }
 }

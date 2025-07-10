@@ -1,33 +1,39 @@
 package com.amberclient.events.network;
 
+import com.amberclient.events.Cancellable;
+import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.Packet;
 
-public abstract class PacketEvent {
-    public final Packet<?> packet;
+public class PacketEvent {
+    public static class Receive extends Cancellable {
+        public Packet<?> packet;
+        public ClientConnection connection;
 
-    public PacketEvent(Packet<?> packet) {
-        this.packet = packet;
-    }
-
-    public static class Receive extends PacketEvent {
-        public Receive(Packet<?> packet) {
-            super(packet);
+        public Receive(Packet<?> packet, ClientConnection connection) {
+            this.setCancelled(false);
+            this.packet = packet;
+            this.connection = connection;
         }
     }
 
-    public static class Send extends PacketEvent {
-        public boolean cancelled = false;
+    public static class Send extends Cancellable {
+        public Packet<?> packet;
+        public ClientConnection connection;
 
-        public Send(Packet<?> packet) {
-            super(packet);
+        public Send(Packet<?> packet, ClientConnection connection) {
+            this.setCancelled(false);
+            this.packet = packet;
+            this.connection = connection;
         }
+    }
 
-        public void cancel() {
-            cancelled = true;
-        }
+    public static class Sent {
+        public Packet<?> packet;
+        public ClientConnection connection;
 
-        public boolean isCancelled() {
-            return cancelled;
+        public Sent(Packet<?> packet, ClientConnection connection) {
+            this.packet = packet;
+            this.connection = connection;
         }
     }
 }

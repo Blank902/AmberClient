@@ -1,5 +1,6 @@
 package com.amberclient.utils.module;
 
+import com.amberclient.events.core.EventManager;
 import com.amberclient.modules.combat.*;
 import com.amberclient.modules.miscellaneous.DiscordRPC;
 import com.amberclient.modules.miscellaneous.ActiveMods;
@@ -60,6 +61,10 @@ public class ModuleManager {
         registerModule(new MacroRecorder());
         registerModule(new AutoPotion());
         registerModule(new AntiHunger());
+
+        for (Module module : modules) {
+            EventManager.getInstance().register(module);
+        }
     }
 
     public static ModuleManager getInstance() {
