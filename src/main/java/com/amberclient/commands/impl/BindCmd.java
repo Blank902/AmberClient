@@ -27,7 +27,7 @@ public class BindCmd {
 
             return bindModule(moduleName, keyName,
                     message -> source.sendFeedback(() -> message, false),
-                    error -> source.sendError(error)
+                    source::sendError
             );
 
         } catch (Exception e) {
@@ -45,12 +45,19 @@ public class BindCmd {
             MinecraftClient client = MinecraftClient.getInstance();
 
             return bindModule(moduleName, keyName,
-                    message -> client.player.sendMessage(message, false),
-                    error -> client.player.sendMessage(error, false)
+                    message -> {
+                        assert client.player != null;
+                        client.player.sendMessage(message, false);
+                    },
+                    error -> {
+                        assert client.player != null;
+                        client.player.sendMessage(error, false);
+                    }
             );
 
         } catch (Exception e) {
             LOGGER.error("Error binding module: {}", e.getMessage(), e);
+            assert MinecraftClient.getInstance().player != null;
             MinecraftClient.getInstance().player.sendMessage(
                     Text.literal("Error binding module: " + e.getMessage()), false
             );

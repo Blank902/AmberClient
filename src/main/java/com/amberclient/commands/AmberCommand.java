@@ -29,7 +29,6 @@ public class AmberCommand {
                                         return DummyCmd.spawnDummy(source);
                                     })
                             )
-                            // Add bind and unbind for singleplayer
                             .then(CommandManager.literal("bind")
                                     .then(CommandManager.argument("module", StringArgumentType.string())
                                             .then(CommandManager.argument("key", StringArgumentType.string())
