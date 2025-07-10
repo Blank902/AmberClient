@@ -1,4 +1,4 @@
-package com.amberclient.mixins.features.amberclient;
+package com.amberclient.mixins.features;
 
 import com.amberclient.modules.render.EntityESP;
 import net.minecraft.client.MinecraftClient;

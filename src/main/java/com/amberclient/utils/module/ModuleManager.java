@@ -8,6 +8,7 @@ import com.amberclient.modules.minigames.MMFinder;
 import com.amberclient.modules.movement.AutoClutch;
 import com.amberclient.modules.movement.NoFall;
 import com.amberclient.modules.movement.SafeWalk;
+import com.amberclient.modules.player.AntiHunger;
 import com.amberclient.modules.player.FastBreak;
 import com.amberclient.modules.player.FastPlace;
 import com.amberclient.modules.render.EntityESP;
@@ -58,6 +59,7 @@ public class ModuleManager {
         registerModule(new AimAssist());
         registerModule(new MacroRecorder());
         registerModule(new AutoPotion());
+        registerModule(new AntiHunger());
     }
 
     public static ModuleManager getInstance() {

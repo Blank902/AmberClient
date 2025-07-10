@@ -2,9 +2,9 @@ package com.amberclient.mixins.features.murdererfinder;
 
 import com.amberclient.utils.minecraft.MinecraftUtils;
 import com.amberclient.utils.features.murdererfinder.MurdererFinder;
-import com.amberclient.utils.accessors.entity.ArmorStandEntityMixinAccessor;
-import com.amberclient.utils.accessors.entity.PlayerEntityMixinAccessor;
-import com.amberclient.utils.accessors.entity.EntityMixinAccessor;
+import com.amberclient.utils.accessors.ArmorStandEntityMixinAccessor;
+import com.amberclient.utils.accessors.PlayerEntityMixinAccessor;
+import com.amberclient.utils.accessors.EntityMixinAccessor;
 import com.amberclient.utils.features.murdererfinder.config.Config;
 import com.amberclient.utils.features.murdererfinder.config.ConfigManager;
 import net.minecraft.client.MinecraftClient;

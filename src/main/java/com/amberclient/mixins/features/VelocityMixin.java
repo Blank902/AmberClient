@@ -1,4 +1,4 @@
-package com.amberclient.mixins.features.amberclient;
+package com.amberclient.mixins.features;
 
 import com.amberclient.events.core.EventManager;
 import com.amberclient.events.player.PostVelocityEvent;

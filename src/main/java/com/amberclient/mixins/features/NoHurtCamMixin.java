@@ -1,4 +1,4 @@
-package com.amberclient.mixins.features.amberclient;
+package com.amberclient.mixins.features;
 
 import com.amberclient.modules.render.NoHurtCam;
 import net.minecraft.client.render.GameRenderer;

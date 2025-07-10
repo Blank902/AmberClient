@@ -1,4 +1,4 @@
-package com.amberclient.utils.accessors.entity;
+package com.amberclient.utils.accessors;
 
 public interface PlayerEntityMixinAccessor {
     boolean amberClient$isMurder();

@@ -1,4 +1,4 @@
-package com.amberclient.utils.accessors.entity
+package com.amberclient.utils.accessors
 
 interface EntityMixinAccessor {
     fun setGlowColor(color: Int)
