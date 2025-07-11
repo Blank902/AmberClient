@@ -52,7 +52,7 @@ public class AmberClient implements ModInitializer {
 
 		DiscordManager.getInstance().initialize();
 
-		LOGGER.info("Amber Client started! Version: " + MOD_VERSION + " with persistent keybinds and Discord RPC!");
+		LOGGER.info("Amber Client started! Version: " + MOD_VERSION);
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			DiscordManager.getInstance().shutdown();
 		}));
