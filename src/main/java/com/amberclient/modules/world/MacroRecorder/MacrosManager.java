@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MacrosManager {
-    private static final Logger LOGGER = LogManager.getLogger("MacroPersistenceManager");
+    private static final Logger LOGGER = LogManager.getLogger("amberclient-macrosmanager");
     private static final String MACROS_FOLDER = "amberclient/macros";
     private static final String MACROS_FILE = "saved_macros.json";
     private static final String ACTIONS_FOLDER = "actions";

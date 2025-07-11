@@ -19,8 +19,6 @@ import java.util.Set;
 public class MinecraftUtils {
     private static final MinecraftClient mc = MinecraftClient.getInstance();
 
-    public static double frameTime;
-
     private static final Set<EntityType<?>> HOSTILE_ENTITIES = new HashSet<>();
     private static final Set<EntityType<?>> NEUTRAL_ENTITIES = new HashSet<>();
     private static final Set<EntityType<?>> PASSIVE_ENTITIES = new HashSet<>();

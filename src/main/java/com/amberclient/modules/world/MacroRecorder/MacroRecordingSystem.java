@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MacroRecordingSystem {
-    private static final Logger LOGGER = LogManager.getLogger("MacroRecordingSystem");
+    private static final Logger LOGGER = LogManager.getLogger("amberclient-macrorecordingsystem");
     private static MacroRecordingSystem instance;
 
     private boolean isRecording = false;
