@@ -30,10 +30,6 @@ public class MacroRecordingSystem {
     private float lastYaw = 0;
     private float lastPitch = 0;
 
-    private double lastScrollX = 0.0;
-    private double lastScrollY = 0.0;
-    private boolean scrollCallbackRegistered = false;
-
     private MacroRecordingSystem() {
         this.client = MinecraftClient.getInstance();
     }
@@ -231,15 +227,6 @@ public class MacroRecordingSystem {
             } catch (Exception e) {
                 LOGGER.warn("Failed to check mouse button state for button {}: {}", mouseButtons[i], e.getMessage());
             }
-        }
-
-        recordMouseScroll(timestamp);
-    }
-
-    private void recordMouseScroll(long timestamp) {
-        if (!scrollCallbackRegistered) {
-            registerScrollCallback();
-            scrollCallbackRegistered = true;
         }
     }
 
