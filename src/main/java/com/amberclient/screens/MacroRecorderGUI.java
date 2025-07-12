@@ -584,7 +584,7 @@ public class MacroRecorderGUI extends Screen {
         int contentY = panel.y + 50;
         int listX = panel.x + 20;
         int listY = contentY + 20;
-        int listWidth = panel.width - 40;
+        int listWidth = panel.width - 15;
         int listHeight = panel.height - 120;
 
         int macroHeight = 50;
@@ -607,27 +607,45 @@ public class MacroRecorderGUI extends Screen {
                 }
 
                 int buttonY = macroY + 10;
-                int buttonWidth = 60;
-                int playButtonX = listX + listWidth - 200;
-                if (isMouseOver((int)mx, (int)my, playButtonX, buttonY, buttonWidth, 20)) {
+                int buttonHeight = 20;
+                int buttonSpacing = 8;
+
+                int playButtonWidth = 50;
+                int editButtonWidth = 50;
+                int viewActionsButtonWidth = 85;
+                int deleteButtonWidth = 60;
+
+                int totalButtonsWidth = playButtonWidth + editButtonWidth + viewActionsButtonWidth + deleteButtonWidth + (3 * buttonSpacing);
+                int availableWidth = listWidth - 20;
+                int buttonsStartX = listX + availableWidth - totalButtonsWidth - 10;
+
+                // Play button
+                if (isMouseOver((int)mx, (int)my, buttonsStartX, buttonY, playButtonWidth, buttonHeight)) {
                     playSavedMacro(macro);
                     return true;
                 }
-                int editButtonX = playButtonX + buttonWidth + 10;
-                if (isMouseOver((int)mx, (int)my, editButtonX, buttonY, buttonWidth, 20)) {
+
+                // Edit button
+                int editButtonX = buttonsStartX + playButtonWidth + buttonSpacing;
+                if (isMouseOver((int)mx, (int)my, editButtonX, buttonY, editButtonWidth, buttonHeight)) {
                     editSavedMacro(macro);
                     return true;
                 }
-                int viewActionsButtonX = editButtonX + buttonWidth + 10;
-                if (isMouseOver((int)mx, (int)my, viewActionsButtonX, buttonY, buttonWidth, 20)) {
+
+                // View Actions button
+                int viewActionsButtonX = editButtonX + editButtonWidth + buttonSpacing;
+                if (isMouseOver((int)mx, (int)my, viewActionsButtonX, buttonY, viewActionsButtonWidth, buttonHeight)) {
                     viewMacroActions(macro);
                     return true;
                 }
-                int deleteButtonX = viewActionsButtonX + buttonWidth + 10;
-                if (isMouseOver((int)mx, (int)my, deleteButtonX, buttonY, buttonWidth, 20)) {
+
+                // Delete button
+                int deleteButtonX = viewActionsButtonX + viewActionsButtonWidth + buttonSpacing;
+                if (isMouseOver((int)mx, (int)my, deleteButtonX, buttonY, deleteButtonWidth, buttonHeight)) {
                     deleteSavedMacro(macro);
                     return true;
                 }
+
                 return true;
             }
         }

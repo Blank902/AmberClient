@@ -1,13 +1,12 @@
 package com.amberclient.modules.world.MacroRecorder;
 
+import com.amberclient.mixins.KeyBindingAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -47,15 +46,8 @@ public class MacroPlaybackSystem {
 
         isPlaying = true;
 
-        CompletableFuture.runAsync(() -> {
-            try {
-                playMacroActions(actions);
-            } catch (Exception e) {
-                LOGGER.error("Error during macro playback", e);
-            } finally {
-                isPlaying = false;
-            }
-        });
+        // Utiliser le scheduler du client au lieu de CompletableFuture
+        scheduleNextAction(actions, 0, System.currentTimeMillis(), actions.get(0).getTimestamp());
     }
 
     public boolean isPlaying() {
@@ -69,46 +61,49 @@ public class MacroPlaybackSystem {
         }
     }
 
-    private void playMacroActions(List<MacroRecordingSystem.MacroAction> actions) {
-        LOGGER.info("Starting macro playback with {} actions", actions.size());
-
-        final long startTime = System.currentTimeMillis();
-        final long firstActionTime = actions.getFirst().getTimestamp();
-
-        for (MacroRecordingSystem.MacroAction action : actions) {
-            if (!isPlaying) {
-                LOGGER.info("Macro playback stopped by user");
-                break;
-            }
-
-            try {
-                waitForActionTiming(action, startTime, firstActionTime);
-                executeAction(action);
-            } catch (InterruptedException e) {
-                LOGGER.info("Macro playback interrupted");
-                Thread.currentThread().interrupt();
-                break;
-            } catch (Exception e) {
-                LOGGER.error("Error executing action: {}", action, e);
-            }
+    private void scheduleNextAction(List<MacroRecordingSystem.MacroAction> actions, int index, long startTime, long firstActionTime) {
+        if (index >= actions.size() || !isPlaying) {
+            isPlaying = false;
+            LOGGER.info("Macro playback completed");
+            return;
         }
 
-        LOGGER.info("Macro playback completed");
-    }
-
-    private void waitForActionTiming(MacroRecordingSystem.MacroAction action, long startTime, long firstActionTime)
-            throws InterruptedException {
+        MacroRecordingSystem.MacroAction action = actions.get(index);
         long relativeTime = action.getTimestamp() - firstActionTime;
         long targetTime = startTime + relativeTime;
         long currentTime = System.currentTimeMillis();
 
-        if (targetTime > currentTime) {
-            Thread.sleep(targetTime - currentTime);
+        long delay = Math.max(0, targetTime - currentTime);
+
+        // Programmer la prochaine action
+        if (delay > 0) {
+            // Attendre le délai nécessaire
+            CompletableFuture.runAsync(() -> {
+                try {
+                    Thread.sleep(delay);
+                    mc.execute(() -> {
+                        executeAction(action);
+                        scheduleNextAction(actions, index + 1, startTime, firstActionTime);
+                    });
+                } catch (InterruptedException e) {
+                    LOGGER.info("Macro playback interrupted");
+                    Thread.currentThread().interrupt();
+                    isPlaying = false;
+                }
+            });
+        } else {
+            // Exécuter immédiatement
+            mc.execute(() -> {
+                executeAction(action);
+                scheduleNextAction(actions, index + 1, startTime, firstActionTime);
+            });
         }
     }
 
     private void executeAction(MacroRecordingSystem.MacroAction action) {
-        if (isValidGameState()) {
+        // CORRECTION : Inverser la logique - ne pas exécuter si l'état est invalide
+        if (!isValidGameState()) {
+            LOGGER.debug("Invalid game state, skipping action: {}", action.getType());
             return;
         }
 
@@ -123,8 +118,9 @@ public class MacroPlaybackSystem {
         }
     }
 
+    // CORRECTION : Renommer pour plus de clarté
     private boolean isValidGameState() {
-        return mc == null || mc.player == null || mc.getWindow() == null;
+        return mc != null && mc.player != null && mc.getWindow() != null && !isGamePausedOrInMenu();
     }
 
     private int extractInteger(Object data) {
@@ -158,24 +154,23 @@ public class MacroPlaybackSystem {
     private void simulateKeyPress(int keyCode, boolean pressed) {
         LOGGER.debug("Simulating key {} {}", keyCode, pressed ? "press" : "release");
 
-        if (isValidGameState() || isGamePausedOrInMenu()) {
+        if (!isValidGameState()) {
+            LOGGER.debug("Invalid game state, skipping key press");
             return;
         }
 
-        mc.execute(() -> {
-            try {
-                if (mc.getWindow().getHandle() == 0) {
-                    LOGGER.warn("Invalid window handle, cannot simulate key press");
-                    return;
-                }
-
-                processKeybindings(keyCode, pressed);
-                LOGGER.debug("Successfully simulated key {} {}", keyCode, pressed ? "press" : "release");
-
-            } catch (Exception e) {
-                LOGGER.error("Key press simulation failed for key {}: {}", keyCode, e.getMessage(), e);
+        try {
+            if (mc.getWindow().getHandle() == 0) {
+                LOGGER.warn("Invalid window handle, cannot simulate key press");
+                return;
             }
-        });
+
+            processKeybindings(keyCode, pressed);
+            LOGGER.debug("Successfully simulated key {} {}", keyCode, pressed ? "press" : "release");
+
+        } catch (Exception e) {
+            LOGGER.error("Key press simulation failed for key {}: {}", keyCode, e.getMessage(), e);
+        }
     }
 
     private boolean isGamePausedOrInMenu() {
@@ -218,32 +213,26 @@ public class MacroPlaybackSystem {
     private void simulateKeybindingByName(String keybindingName) {
         LOGGER.debug("Simulating keybinding by name: {}", keybindingName);
 
-        if (isValidGameState() || isGamePausedOrInMenu()) {
+        if (!isValidGameState()) {
+            LOGGER.debug("Invalid game state, skipping keybinding");
             return;
         }
 
-        mc.execute(() -> {
-            try {
-                KeyBinding keyBinding = findKeybindingByName(keybindingName);
-                if (keyBinding != null) {
-                    simulateKeybindingPress(keyBinding);
+        try {
+            KeyBinding keyBinding = findKeybindingByName(keybindingName);
+            if (keyBinding != null) {
+                simulateKeybindingPress(keyBinding);
 
-                    mc.execute(() -> {
-                        try {
-                            simulateKeybindingRelease(keyBinding);
-                        } catch (Exception e) {
-                            LOGGER.warn("Failed to release keybinding {}: {}", keybindingName, e.getMessage());
-                        }
-                    });
+                // Programmer la release pour le prochain tick
+                mc.execute(() -> simulateKeybindingRelease(keyBinding));
 
-                    LOGGER.debug("Successfully simulated keybinding: {}", keybindingName);
-                } else {
-                    LOGGER.warn("Keybinding not found: {}", keybindingName);
-                }
-            } catch (Exception e) {
-                LOGGER.error("Failed to simulate keybinding {}: {}", keybindingName, e.getMessage(), e);
+                LOGGER.debug("Successfully simulated keybinding: {}", keybindingName);
+            } else {
+                LOGGER.warn("Keybinding not found: {}", keybindingName);
             }
-        });
+        } catch (Exception e) {
+            LOGGER.error("Failed to simulate keybinding {}: {}", keybindingName, e.getMessage(), e);
+        }
     }
 
     private KeyBinding findKeybindingByName(String name) {
@@ -272,8 +261,10 @@ public class MacroPlaybackSystem {
 
     private void simulateKeybindingPress(KeyBinding keyBinding) {
         try {
-            setFieldValue(keyBinding, "timesPressed", 1);
-            setFieldValue(keyBinding, "pressed", true);
+            KeyBindingAccessor accessor = (KeyBindingAccessor) keyBinding;
+            accessor.setPressed(true);
+            accessor.setTimesPressed(accessor.getTimesPressed() + 1);
+            LOGGER.debug("Keybinding pressed using Mixin accessor: {}", keyBinding.getTranslationKey());
         } catch (Exception e) {
             LOGGER.warn("Failed to simulate keybinding press: {}", e.getMessage());
         }
@@ -281,23 +272,11 @@ public class MacroPlaybackSystem {
 
     private void simulateKeybindingRelease(KeyBinding keyBinding) {
         try {
-            setFieldValue(keyBinding, "pressed", false);
-            setFieldValue(keyBinding, "pressTime", 0);
+            KeyBindingAccessor accessor = (KeyBindingAccessor) keyBinding;
+            accessor.setPressed(false);
+            LOGGER.debug("Keybinding released using Mixin accessor: {}", keyBinding.getTranslationKey());
         } catch (Exception e) {
             LOGGER.warn("Failed to simulate keybinding release: {}", e.getMessage());
-        }
-    }
-
-    private void setFieldValue(Object target, String fieldName, Object value) throws Exception {
-        Field field = target.getClass().getDeclaredField(fieldName);
-        field.setAccessible(true);
-
-        if (value instanceof Integer) {
-            field.setInt(target, (Integer) value);
-        } else if (value instanceof Boolean) {
-            field.setBoolean(target, (Boolean) value);
-        } else {
-            field.set(target, value);
         }
     }
 
@@ -332,9 +311,10 @@ public class MacroPlaybackSystem {
 
     private void handleMovementKey(KeyBinding keyBinding, boolean pressed) {
         try {
-            setFieldValue(keyBinding, "pressed", pressed);
+            KeyBindingAccessor accessor = (KeyBindingAccessor) keyBinding;
+            accessor.setPressed(pressed);
             if (pressed) {
-                setFieldValue(keyBinding, "pressTime", 1);
+                accessor.setTimesPressed(accessor.getTimesPressed() + 1);
             }
         } catch (Exception e) {
             LOGGER.warn("Failed to handle movement key: {}", e.getMessage());
@@ -343,15 +323,9 @@ public class MacroPlaybackSystem {
 
     private void handleActionKey(KeyBinding keyBinding) {
         try {
-            setFieldValue(keyBinding, "pressTime", 1);
-
-            mc.execute(() -> {
-                try {
-                    setFieldValue(keyBinding, "pressTime", 0);
-                } catch (Exception e) {
-                    LOGGER.warn("Failed to release action key: {}", e.getMessage());
-                }
-            });
+            KeyBindingAccessor accessor = (KeyBindingAccessor) keyBinding;
+            accessor.setTimesPressed(accessor.getTimesPressed() + 1);
+            LOGGER.debug("Action key triggered: {}", keyBinding.getTranslationKey());
         } catch (Exception e) {
             LOGGER.warn("Failed to handle action key: {}", e.getMessage());
         }
@@ -360,36 +334,48 @@ public class MacroPlaybackSystem {
     private void simulateMouseClick(int button, boolean pressed) {
         LOGGER.debug("Simulating mouse button {} {}", button, pressed ? "press" : "release");
 
-        if (isValidGameState() || isGamePausedOrInMenu()) {
+        if (!isValidGameState()) {
+            LOGGER.debug("Invalid game state, skipping mouse click");
             return;
         }
 
-        mc.execute(() -> {
-            try {
-                long windowHandle = mc.getWindow().getHandle();
-                if (windowHandle == 0) {
-                    LOGGER.warn("Invalid window handle, cannot simulate mouse click");
-                    return;
-                }
+        try {
+            KeyBinding targetKey = null;
 
-                boolean wasGrabbed = mc.mouse.isCursorLocked();
+            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                targetKey = mc.options.attackKey;
+            } else if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+                targetKey = mc.options.useKey;
+            } else if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
+                targetKey = mc.options.pickItemKey;
+            }
 
-                Method onMouseButtonMethod = mc.mouse.getClass().getDeclaredMethod(
-                        "onMouseButton", long.class, int.class, int.class, int.class
-                );
-                onMouseButtonMethod.setAccessible(true);
-                onMouseButtonMethod.invoke(mc.mouse, windowHandle, button,
-                        pressed ? GLFW.GLFW_PRESS : GLFW.GLFW_RELEASE, 0);
+            if (targetKey != null) {
+                KeyBindingAccessor accessor = (KeyBindingAccessor) targetKey;
 
-                if (wasGrabbed && !mc.mouse.isCursorLocked()) {
-                    mc.mouse.lockCursor();
+                if (pressed) {
+                    accessor.setPressed(true);
+                    accessor.setTimesPressed(accessor.getTimesPressed() + 1);
+
+                    mc.execute(() -> {
+                        try {
+                            accessor.setPressed(false);
+                            LOGGER.debug("Mouse button {} released", button);
+                        } catch (Exception e) {
+                            LOGGER.warn("Failed to release mouse button: {}", e.getMessage());
+                        }
+                    });
+                } else {
+                    // Release explicite
+                    accessor.setPressed(false);
                 }
 
                 LOGGER.debug("Successfully simulated mouse button {} {}", button, pressed ? "press" : "release");
-
-            } catch (Exception e) {
-                LOGGER.error("Mouse click simulation failed for button {}: {}", button, e.getMessage(), e);
+            } else {
+                LOGGER.warn("Unsupported mouse button: {}", button);
             }
-        });
+        } catch (Exception e) {
+            LOGGER.error("Mouse click simulation failed for button {}: {}", button, e.getMessage(), e);
+        }
     }
 }
