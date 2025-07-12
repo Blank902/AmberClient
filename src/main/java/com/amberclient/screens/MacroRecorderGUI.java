@@ -165,7 +165,6 @@ public class MacroRecorderGUI extends Screen {
             renderActionsTab(context, mainPanel, mouseX, mouseY, trans);
         }
 
-        renderStatusBar(context, mainPanel, trans);
         super.render(context, mouseX, mouseY, delta);
     }
 
@@ -321,11 +320,6 @@ public class MacroRecorderGUI extends Screen {
         int actionCount = recordingSystem.getActionCount();
         context.drawTextWithShadow(textRenderer, "Actions in the current macro: " + actionCount, x + 10, y + 50, TEXT);
         context.drawTextWithShadow(textRenderer, "Saved macros: " + savedMacros.size(), x + 10, y + 70, TEXT);
-
-        context.drawTextWithShadow(textRenderer, "Shortcuts:", x + 10, y + 100, ACCENT);
-        context.drawTextWithShadow(textRenderer, "R - Start/Stop", x + 10, y + 120, new Color(180, 180, 180).getRGB());
-        context.drawTextWithShadow(textRenderer, "P - Play", x + 10, y + 135, new Color(180, 180, 180).getRGB());
-        context.drawTextWithShadow(textRenderer, "S - Save", x + 10, y + 150, new Color(180, 180, 180).getRGB());
     }
 
     private void renderSavedMacrosTab(DrawContext context, PanelBounds panel, int mouseX, int mouseY, float trans) {
@@ -377,30 +371,27 @@ public class MacroRecorderGUI extends Screen {
             int viewActionsButtonWidth = 85; // Plus large pour "View Actions"
             int deleteButtonWidth = 60;
 
-            // Calcul de la largeur totale nécessaire
             int totalButtonsWidth = playButtonWidth + editButtonWidth + viewActionsButtonWidth + deleteButtonWidth + (3 * buttonSpacing);
 
-            // Position de départ : aligné à droite avec une marge de sécurité
-            int availableWidth = listWidth - 20; // Largeur disponible (moins la scrollbar)
-            int buttonsStartX = listX + availableWidth - totalButtonsWidth - 10; // 10px de marge à droite
+            int availableWidth = listWidth - 20;
+            int buttonsStartX = listX + availableWidth - totalButtonsWidth - 10;
 
-            // Bouton Play
-            int playButtonX = buttonsStartX;
-            boolean playButtonHovered = isMouseOver(mouseX, mouseY, playButtonX, buttonY, playButtonWidth, buttonHeight);
+            // Play button
+            boolean playButtonHovered = isMouseOver(mouseX, mouseY, buttonsStartX, buttonY, playButtonWidth, buttonHeight);
             int playButtonColor = playButtonHovered ? SUCCESS_COLOR : new Color(0, 150, 0).getRGB();
-            context.fill(playButtonX, buttonY, playButtonX + playButtonWidth, buttonY + buttonHeight, playButtonColor);
-            drawBorder(context, playButtonX, buttonY, playButtonWidth, buttonHeight);
-            context.drawCenteredTextWithShadow(textRenderer, "Play", playButtonX + playButtonWidth / 2, buttonY + 5, Color.WHITE.getRGB());
+            context.fill(buttonsStartX, buttonY, buttonsStartX + playButtonWidth, buttonY + buttonHeight, playButtonColor);
+            drawBorder(context, buttonsStartX, buttonY, playButtonWidth, buttonHeight);
+            context.drawCenteredTextWithShadow(textRenderer, "Play", buttonsStartX + playButtonWidth / 2, buttonY + 5, Color.WHITE.getRGB());
 
-            // Bouton Edit
-            int editButtonX = playButtonX + playButtonWidth + buttonSpacing;
+            // Edit button
+            int editButtonX = buttonsStartX + playButtonWidth + buttonSpacing;
             boolean editButtonHovered = isMouseOver(mouseX, mouseY, editButtonX, buttonY, editButtonWidth, buttonHeight);
             int editButtonColor = editButtonHovered ? ACCENT_HOVER : ACCENT;
             context.fill(editButtonX, buttonY, editButtonX + editButtonWidth, buttonY + buttonHeight, editButtonColor);
             drawBorder(context, editButtonX, buttonY, editButtonWidth, buttonHeight);
             context.drawCenteredTextWithShadow(textRenderer, "Edit", editButtonX + editButtonWidth / 2, buttonY + 5, Color.WHITE.getRGB());
 
-            // Bouton View Actions
+            // View Actions button
             int viewActionsButtonX = editButtonX + editButtonWidth + buttonSpacing;
             boolean viewActionsButtonHovered = isMouseOver(mouseX, mouseY, viewActionsButtonX, buttonY, viewActionsButtonWidth, buttonHeight);
             int viewActionsButtonColor = viewActionsButtonHovered ? new Color(100, 150, 255).getRGB() : new Color(70, 120, 200).getRGB();
@@ -408,7 +399,7 @@ public class MacroRecorderGUI extends Screen {
             drawBorder(context, viewActionsButtonX, buttonY, viewActionsButtonWidth, buttonHeight);
             context.drawCenteredTextWithShadow(textRenderer, "View Actions", viewActionsButtonX + viewActionsButtonWidth / 2, buttonY + 5, Color.WHITE.getRGB());
 
-            // Bouton Delete
+            // Delete button
             int deleteButtonX = viewActionsButtonX + viewActionsButtonWidth + buttonSpacing;
             boolean deleteButtonHovered = isMouseOver(mouseX, mouseY, deleteButtonX, buttonY, deleteButtonWidth, buttonHeight);
             int deleteButtonColor = deleteButtonHovered ? new Color(255, 100, 100).getRGB() : ERROR_COLOR;
@@ -426,23 +417,6 @@ public class MacroRecorderGUI extends Screen {
         }
 
         context.disableScissor();
-    }
-
-    private void renderStatusBar(DrawContext context, PanelBounds panel, float trans) {
-        int statusY = panel.y + panel.height + 5;
-        context.fill(panel.x, statusY, panel.x + panel.width, statusY + 20, applyTransparency(PANEL_BG, trans));
-
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - statusMessageTime > 5000) {
-            statusMessage = isRecording ? "Active recording" :
-                    isPlaying ? "Playback in progress" : "Ready";
-            statusMessageColor = isRecording ? RECORDING_COLOR :
-                    isPlaying ? SUCCESS_COLOR : TEXT;
-        }
-        context.drawTextWithShadow(textRenderer, statusMessage, panel.x + 10, statusY + 6, statusMessageColor);
-
-        String versionText = "Macro Recorder • Amber Client " + AmberClient.MOD_VERSION;
-        context.drawTextWithShadow(textRenderer, versionText, panel.x + panel.width - textRenderer.getWidth(versionText) - 10, statusY + 6, TEXT);
     }
 
     private void renderActionsTab(DrawContext context, PanelBounds panel, int mouseX, int mouseY, float trans) {
@@ -1020,7 +994,6 @@ public class MacroRecorderGUI extends Screen {
         int actionSpacing = 2;
         int totalContentHeight = selectedMacroActions.size() * (actionHeight + actionSpacing) - actionSpacing;
 
-        // Vérifier si on clique sur la scrollbar
         if (totalContentHeight > listHeight) {
             float scrollRatio = (float) listHeight / totalContentHeight;
             int thumbHeight = Math.max(20, (int)(listHeight * scrollRatio));
@@ -1029,7 +1002,6 @@ public class MacroRecorderGUI extends Screen {
             int scrollbarX = listX + listWidth - 15;
             int scrollbarWidth = 5;
 
-            // Clic sur le thumb de la scrollbar
             if (isMouseOver((int)mx, (int)my, scrollbarX, thumbY, scrollbarWidth, thumbHeight)) {
                 actionsScrollState.isDragging = true;
                 actionsScrollState.dragStartY = (int)my;
