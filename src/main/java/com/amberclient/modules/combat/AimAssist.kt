@@ -72,7 +72,7 @@ class AimAssist : Module("AimAssist", "Automatically aims at nearby entities", "
 
     init {
         ClientTickEvents.END_CLIENT_TICK.register { client ->
-            if (isEnabled) {
+            if (isEnabled()) {
                 onTick()
             }
         }

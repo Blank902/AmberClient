@@ -14,6 +14,6 @@ class Transparency : Module("Transparency", "Make Click GUI Transparent", "Misce
     init { enabled = true }
 
     fun getTransparencyLevel(): Float {
-        return if (isEnabled) 0.0f else 0.9f
+        return if (isEnabled()) 0.0f else 0.9f
     }
 }
