@@ -1,7 +1,7 @@
 package com.amberclient.screens;
 
 //
-// Don't mind this mess, imma clean this later
+// TODO: Don't mind this mess, imma clean this later
 //
 
 import com.amberclient.AmberClient;
@@ -336,7 +336,7 @@ public class MacroRecorderGUI extends Screen {
 
         int listX = panel.x + 20;
         int listY = contentY + 20;
-        int listWidth = panel.width - 40;
+        int listWidth = panel.width - 15;
         int listHeight = contentHeight - 20;
 
         context.enableScissor(listX, listY, listX + listWidth, listY + listHeight);
@@ -366,30 +366,55 @@ public class MacroRecorderGUI extends Screen {
             context.drawTextWithShadow(textRenderer, macro.name, listX + 10, macroY + 8, Color.WHITE.getRGB());
             context.drawTextWithShadow(textRenderer, "Actions: " + macro.actionCount, listX + 10, macroY + 22, new Color(180, 180, 180).getRGB());
 
+            // Calcul dynamique de la position des boutons
             int buttonY = macroY + 10;
-            int buttonWidth = 60;
             int buttonHeight = 20;
+            int buttonSpacing = 8;
 
-            int playButtonX = listX + listWidth - 200;
-            boolean playButtonHovered = isMouseOver(mouseX, mouseY, playButtonX, buttonY, buttonWidth, buttonHeight);
+            // Largeurs adaptées au contenu
+            int playButtonWidth = 50;
+            int editButtonWidth = 50;
+            int viewActionsButtonWidth = 85; // Plus large pour "View Actions"
+            int deleteButtonWidth = 60;
+
+            // Calcul de la largeur totale nécessaire
+            int totalButtonsWidth = playButtonWidth + editButtonWidth + viewActionsButtonWidth + deleteButtonWidth + (3 * buttonSpacing);
+
+            // Position de départ : aligné à droite avec une marge de sécurité
+            int availableWidth = listWidth - 20; // Largeur disponible (moins la scrollbar)
+            int buttonsStartX = listX + availableWidth - totalButtonsWidth - 10; // 10px de marge à droite
+
+            // Bouton Play
+            int playButtonX = buttonsStartX;
+            boolean playButtonHovered = isMouseOver(mouseX, mouseY, playButtonX, buttonY, playButtonWidth, buttonHeight);
             int playButtonColor = playButtonHovered ? SUCCESS_COLOR : new Color(0, 150, 0).getRGB();
-            context.fill(playButtonX, buttonY, playButtonX + buttonWidth, buttonY + buttonHeight, playButtonColor);
-            drawBorder(context, playButtonX, buttonY, buttonWidth, buttonHeight);
-            context.drawCenteredTextWithShadow(textRenderer, "Play", playButtonX + buttonWidth / 2, buttonY + 5, Color.WHITE.getRGB());
+            context.fill(playButtonX, buttonY, playButtonX + playButtonWidth, buttonY + buttonHeight, playButtonColor);
+            drawBorder(context, playButtonX, buttonY, playButtonWidth, buttonHeight);
+            context.drawCenteredTextWithShadow(textRenderer, "Play", playButtonX + playButtonWidth / 2, buttonY + 5, Color.WHITE.getRGB());
 
-            int editButtonX = playButtonX + buttonWidth + 10;
-            boolean editButtonHovered = isMouseOver(mouseX, mouseY, editButtonX, buttonY, buttonWidth, buttonHeight);
+            // Bouton Edit
+            int editButtonX = playButtonX + playButtonWidth + buttonSpacing;
+            boolean editButtonHovered = isMouseOver(mouseX, mouseY, editButtonX, buttonY, editButtonWidth, buttonHeight);
             int editButtonColor = editButtonHovered ? ACCENT_HOVER : ACCENT;
-            context.fill(editButtonX, buttonY, editButtonX + buttonWidth, buttonY + buttonHeight, editButtonColor);
-            drawBorder(context, editButtonX, buttonY, buttonWidth, buttonHeight);
-            context.drawCenteredTextWithShadow(textRenderer, "Edit", editButtonX + buttonWidth / 2, buttonY + 5, Color.WHITE.getRGB());
+            context.fill(editButtonX, buttonY, editButtonX + editButtonWidth, buttonY + buttonHeight, editButtonColor);
+            drawBorder(context, editButtonX, buttonY, editButtonWidth, buttonHeight);
+            context.drawCenteredTextWithShadow(textRenderer, "Edit", editButtonX + editButtonWidth / 2, buttonY + 5, Color.WHITE.getRGB());
 
-            int deleteButtonX = editButtonX + buttonWidth + 10;
-            boolean deleteButtonHovered = isMouseOver(mouseX, mouseY, deleteButtonX, buttonY, buttonWidth, buttonHeight);
+            // Bouton View Actions
+            int viewActionsButtonX = editButtonX + editButtonWidth + buttonSpacing;
+            boolean viewActionsButtonHovered = isMouseOver(mouseX, mouseY, viewActionsButtonX, buttonY, viewActionsButtonWidth, buttonHeight);
+            int viewActionsButtonColor = viewActionsButtonHovered ? new Color(100, 150, 255).getRGB() : new Color(70, 120, 200).getRGB();
+            context.fill(viewActionsButtonX, buttonY, viewActionsButtonX + viewActionsButtonWidth, buttonY + buttonHeight, viewActionsButtonColor);
+            drawBorder(context, viewActionsButtonX, buttonY, viewActionsButtonWidth, buttonHeight);
+            context.drawCenteredTextWithShadow(textRenderer, "View Actions", viewActionsButtonX + viewActionsButtonWidth / 2, buttonY + 5, Color.WHITE.getRGB());
+
+            // Bouton Delete
+            int deleteButtonX = viewActionsButtonX + viewActionsButtonWidth + buttonSpacing;
+            boolean deleteButtonHovered = isMouseOver(mouseX, mouseY, deleteButtonX, buttonY, deleteButtonWidth, buttonHeight);
             int deleteButtonColor = deleteButtonHovered ? new Color(255, 100, 100).getRGB() : ERROR_COLOR;
-            context.fill(deleteButtonX, buttonY, deleteButtonX + buttonWidth, buttonY + buttonHeight, deleteButtonColor);
-            drawBorder(context, deleteButtonX, buttonY, buttonWidth, buttonHeight);
-            context.drawCenteredTextWithShadow(textRenderer, "Delete", deleteButtonX + buttonWidth / 2, buttonY + 5, Color.WHITE.getRGB());
+            context.fill(deleteButtonX, buttonY, deleteButtonX + deleteButtonWidth, buttonY + buttonHeight, deleteButtonColor);
+            drawBorder(context, deleteButtonX, buttonY, deleteButtonWidth, buttonHeight);
+            context.drawCenteredTextWithShadow(textRenderer, "Delete", deleteButtonX + deleteButtonWidth / 2, buttonY + 5, Color.WHITE.getRGB());
         }
 
         if (totalContentHeight > listHeight) {
@@ -619,7 +644,12 @@ public class MacroRecorderGUI extends Screen {
                     editSavedMacro(macro);
                     return true;
                 }
-                int deleteButtonX = editButtonX + buttonWidth + 10;
+                int viewActionsButtonX = editButtonX + buttonWidth + 10;
+                if (isMouseOver((int)mx, (int)my, viewActionsButtonX, buttonY, buttonWidth, 20)) {
+                    viewMacroActions(macro);
+                    return true;
+                }
+                int deleteButtonX = viewActionsButtonX + buttonWidth + 10;
                 if (isMouseOver((int)mx, (int)my, deleteButtonX, buttonY, buttonWidth, 20)) {
                     deleteSavedMacro(macro);
                     return true;
@@ -629,6 +659,19 @@ public class MacroRecorderGUI extends Screen {
         }
 
         return super.mouseClicked(mx, my, button);
+    }
+
+    private void viewMacroActions(MacrosManager.SavedMacro macro) {
+        try {
+            selectedMacro = macro;
+            selectedMacroActions = persistenceManager.loadMacroActions(macro.id);
+            selectedTab = 2;
+            actionsScroll = 0;
+            setStatusMessage("Viewing actions for: " + macro.name, ACCENT);
+        } catch (Exception e) {
+            selectedMacroActions.clear();
+            setStatusMessage("Failed to load macro actions: " + e.getMessage(), ERROR_COLOR);
+        }
     }
 
     @Override
