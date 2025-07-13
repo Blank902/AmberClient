@@ -8,7 +8,7 @@ import net.minecraft.text.Text
 abstract class Module(
     public val name: String,
     public val description: String,
-    public val category: String
+    public val category: ModuleCategory
 ) {
     @JvmField
     protected var enabled: Boolean = false

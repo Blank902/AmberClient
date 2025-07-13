@@ -2,6 +2,7 @@ package com.amberclient.modules.movement
 
 import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.Module
+import com.amberclient.utils.module.ModuleCategory
 import com.amberclient.utils.module.ModuleSettings
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.minecraft.client.MinecraftClient
@@ -12,7 +13,7 @@ import org.apache.logging.log4j.Logger
 import kotlin.math.floor
 import kotlin.random.Random
 
-class SafeWalk : Module("SafeWalk", "Prevents falling off edges", "Movement"), ConfigurableModule {
+class SafeWalk : Module("SafeWalk", "Prevents falling off edges", ModuleCategory.MOVEMENT), ConfigurableModule {
 
     companion object {
         const val MOD_ID = "amberclient-safewalk"

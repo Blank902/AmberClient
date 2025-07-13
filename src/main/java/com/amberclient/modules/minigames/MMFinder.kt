@@ -5,6 +5,7 @@ import com.amberclient.utils.features.murdererfinder.MurdererFinder
 import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.Module
 import com.amberclient.utils.features.murdererfinder.config.ConfigManager
+import com.amberclient.utils.module.ModuleCategory
 import net.minecraft.client.MinecraftClient
 import net.minecraft.text.Text
 import org.apache.logging.log4j.LogManager
@@ -16,7 +17,7 @@ import org.apache.logging.log4j.Logger
       All credits go to thatDudo.
  */
 
-class MMFinder : Module("MurdererFinder", "Find the murderer in Hypixel's Murder Mystery", "Mini-games"), ConfigurableModule {
+class MMFinder : Module("MurdererFinder", "Find the murderer in Hypixel's Murder Mystery", ModuleCategory.MINIGAMES), ConfigurableModule {
 
     companion object {
         const val MOD_ID = "amberclient-murderfinder"

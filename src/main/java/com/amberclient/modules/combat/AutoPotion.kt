@@ -3,9 +3,10 @@ package com.amberclient.modules.combat
 import com.amberclient.utils.minecraft.InvUtils
 import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.Module
+import com.amberclient.utils.module.ModuleCategory
 import com.amberclient.utils.module.ModuleSettings
 
-class AutoPotion : Module("AutoPotion", "Automatically throws healing potions at your feet", "Combat"), ConfigurableModule {
+class AutoPotion : Module("AutoPotion", "Automatically throws healing potions at your feet", ModuleCategory.COMBAT), ConfigurableModule {
 
     companion object {
         private var instance: AutoPotion? = null

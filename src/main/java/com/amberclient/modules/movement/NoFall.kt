@@ -1,12 +1,13 @@
 package com.amberclient.modules.movement
 
 import com.amberclient.utils.module.Module
+import com.amberclient.utils.module.ModuleCategory
 import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
-class NoFall : Module("NoFall", "Prevents fall damage", "Movement") {
+class NoFall : Module("NoFall", "Prevents fall damage", ModuleCategory.MOVEMENT) {
     companion object {
         const val MOD_ID = "amberclient-nofall"
         val LOGGER: Logger = LogManager.getLogger(MOD_ID)

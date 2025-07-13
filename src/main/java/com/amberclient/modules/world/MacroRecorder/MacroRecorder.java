@@ -2,6 +2,7 @@ package com.amberclient.modules.world.MacroRecorder;
 
 import com.amberclient.screens.MacroRecorderGUI;
 import com.amberclient.utils.module.Module;
+import com.amberclient.utils.module.ModuleCategory;
 import net.minecraft.client.MinecraftClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,7 +14,7 @@ public class MacroRecorder extends Module {
     private final MacroRecordingSystem recordingSystem;
 
     public MacroRecorder() {
-        super("MacroRecorder", "X", "World");
+        super("MacroRecorder", "Record and play macros with a easy-to-use GUI!", ModuleCategory.WORLD);
         this.recordingSystem = MacroRecordingSystem.getInstance();
         MacrosManager persistenceManager = new MacrosManager();
 
@@ -27,12 +28,8 @@ public class MacroRecorder extends Module {
     @Override
     public void onEnable() {
         MinecraftClient client = getClient();
-        if (client != null) {
-            client.setScreen(new MacroRecorderGUI());
-            this.enabled = false;
-        } else {
-            LOGGER.warn("Unable to open MacroRecorderGUI: Minecraft client not available");
-        }
+        client.setScreen(new MacroRecorderGUI());
+        this.enabled = false;
     }
 
     @Override

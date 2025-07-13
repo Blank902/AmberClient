@@ -2,6 +2,7 @@ package com.amberclient.modules.render
 
 import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.Module
+import com.amberclient.utils.module.ModuleCategory
 import com.amberclient.utils.module.ModuleSettings
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.render.entity.state.LivingEntityRenderState
@@ -11,7 +12,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.util.*
 
-class EntityESP : Module("EntityESP", "Display outlines around entity models (players & mobs)", "Render"), ConfigurableModule {
+class EntityESP : Module("EntityESP", "Display outlines around entity models (players & mobs)", ModuleCategory.RENDER), ConfigurableModule {
     companion object {
         const val MOD_ID = "amberclient-entityesp"
         val LOGGER: Logger = LogManager.getLogger(MOD_ID)

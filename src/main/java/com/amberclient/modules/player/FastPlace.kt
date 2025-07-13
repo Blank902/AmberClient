@@ -1,11 +1,12 @@
 package com.amberclient.modules.player
 
 import com.amberclient.utils.module.Module
+import com.amberclient.utils.module.ModuleCategory
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import kotlin.random.Random
 
-class FastPlace : Module("FastPlace", "Blocks go brrrrrrr", "Player") {
+class FastPlace : Module("FastPlace", "Blocks go brrrrrrr", ModuleCategory.PLAYER) {
 
     companion object {
         const val MOD_ID = "amberclient-fastplace"

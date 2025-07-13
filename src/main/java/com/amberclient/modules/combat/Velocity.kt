@@ -5,9 +5,10 @@ import com.amberclient.events.player.PreVelocityEvent
 import com.amberclient.events.player.PreVelocityListener
 import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.Module
+import com.amberclient.utils.module.ModuleCategory
 import com.amberclient.utils.module.ModuleSettings
 
-class Velocity : Module("Velocity", "Reduces knockback with anti-rollback", "Combat"), ConfigurableModule, PreVelocityListener {
+class Velocity : Module("Velocity", "Reduces knockback with anti-rollback", ModuleCategory.COMBAT), ConfigurableModule, PreVelocityListener {
 
     companion object {
         private var instance: Velocity? = null

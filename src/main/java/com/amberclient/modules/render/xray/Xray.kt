@@ -2,6 +2,7 @@ package com.amberclient.modules.render.xray
 
 import com.amberclient.utils.module.Module
 import com.amberclient.utils.module.ConfigurableModule
+import com.amberclient.utils.module.ModuleCategory
 import com.amberclient.utils.module.ModuleSettings
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents
 import net.minecraft.client.MinecraftClient
@@ -10,7 +11,7 @@ import net.minecraft.util.math.ChunkPos
 import org.apache.logging.log4j.Logger
 import org.apache.logging.log4j.LogManager
 
-class Xray : Module("XRay", "Shows the outlines of the selected ores in the chunk", "Render"), ConfigurableModule {
+class Xray : Module("XRay", "Shows the outlines of the selected ores in the chunk", ModuleCategory.RENDER), ConfigurableModule {
 
     companion object {
         const val MOD_ID = "amberclient-xray"

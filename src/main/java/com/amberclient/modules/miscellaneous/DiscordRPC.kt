@@ -2,9 +2,10 @@ package com.amberclient.modules.miscellaneous
 
 import com.amberclient.utils.module.Module
 import com.amberclient.utils.discord.DiscordManager
+import com.amberclient.utils.module.ModuleCategory
 import net.minecraft.text.Text
 
-class DiscordRPC : Module("DiscordRPC", "Enable/disable Discord Rich Presence", "Miscellaneous") {
+class DiscordRPC : Module("DiscordRPC", "Enable/disable Discord Rich Presence", ModuleCategory.MISC) {
     init {
         enabled = true
     }

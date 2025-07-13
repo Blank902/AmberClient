@@ -7,11 +7,12 @@ import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.Module
 import com.amberclient.utils.module.ModuleSettings
 import com.amberclient.utils.minecraft.rotation.RotationFaker
+import com.amberclient.utils.module.ModuleCategory
 import net.minecraft.text.Text
 import org.apache.logging.log4j.Logger
 import org.apache.logging.log4j.LogManager
 
-class Hitbox : Module("Hitbox", "(DETECTABLE) Increases hitboxes' size", "Combat"), ConfigurableModule {
+class Hitbox : Module("Hitbox", "(DETECTABLE) Increases hitboxes' size", ModuleCategory.COMBAT), ConfigurableModule {
 
     companion object {
         const val MOD_ID = "amberclient-hitbox"

@@ -2,6 +2,7 @@ package com.amberclient.modules.combat
 
 import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.Module
+import com.amberclient.utils.module.ModuleCategory
 import com.amberclient.utils.module.ModuleSettings
 import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.Entity
@@ -14,7 +15,7 @@ import net.minecraft.util.hit.HitResult
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
-class AutoClicker : Module("AutoClicker", "Auto clicks when aiming at an entity", "Combat"), ConfigurableModule {
+class AutoClicker : Module("AutoClicker", "Auto clicks when aiming at an entity", ModuleCategory.COMBAT), ConfigurableModule {
 
     companion object {
         const val MOD_ID = "amberclient-autoclicker"

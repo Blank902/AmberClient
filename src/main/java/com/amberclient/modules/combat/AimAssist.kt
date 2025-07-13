@@ -3,6 +3,7 @@ package com.amberclient.modules.combat
 import com.amberclient.utils.minecraft.MinecraftUtils
 import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.Module
+import com.amberclient.utils.module.ModuleCategory
 import com.amberclient.utils.module.ModuleSettings
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.minecraft.entity.Entity
@@ -18,7 +19,7 @@ import org.joml.Vector3d
 import kotlin.math.*
 import kotlin.random.Random
 
-class AimAssist : Module("AimAssist", "Automatically aims at nearby entities", "Combat"), ConfigurableModule {
+class AimAssist : Module("AimAssist", "Automatically aims at nearby entities", ModuleCategory.COMBAT), ConfigurableModule {
 
     companion object {
         const val MOD_ID = "amberclient-aimassist"

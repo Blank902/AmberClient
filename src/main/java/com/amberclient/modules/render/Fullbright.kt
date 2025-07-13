@@ -1,8 +1,9 @@
 package com.amberclient.modules.render
 
 import com.amberclient.utils.module.Module
+import com.amberclient.utils.module.ModuleCategory
 
-class Fullbright : Module("Fullbright", "Maximizes brightness", "Render") {
+class Fullbright : Module("Fullbright", "Maximizes brightness", ModuleCategory.RENDER) {
     companion object {
         const val FULLBRIGHT_GAMMA = 10.0
     }

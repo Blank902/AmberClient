@@ -7,12 +7,13 @@ import com.amberclient.events.player.SendMovementPacketsEvent
 import com.amberclient.events.network.PacketEvent
 import com.amberclient.mixins.PlayerMoveC2SPacketAccessor
 import com.amberclient.events.core.EventHandler
+import com.amberclient.utils.module.ModuleCategory
 import net.minecraft.client.MinecraftClient
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket
 import net.minecraft.text.Text
 
-class AntiHunger : Module("AntiHunger", "Reduces (does NOT remove) hunger consumption.", "Player"), ConfigurableModule {
+class AntiHunger : Module("AntiHunger", "Reduces (does NOT remove) hunger consumption.", ModuleCategory.PLAYER), ConfigurableModule {
 
     private val sprintSetting = ModuleSettings("Sprint", "Spoofs sprinting packets.", true)
     private val onGroundSetting = ModuleSettings("On Ground", "Spoofs the onGround flag.", true)

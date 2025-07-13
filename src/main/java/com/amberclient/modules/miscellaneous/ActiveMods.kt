@@ -2,10 +2,11 @@ package com.amberclient.modules.miscellaneous
 
 import com.amberclient.utils.module.Module
 import com.amberclient.utils.module.ConfigurableModule
+import com.amberclient.utils.module.ModuleCategory
 import com.amberclient.utils.module.ModuleSettings
 import net.minecraft.text.Text
 
-class ActiveMods : Module("ActiveMods", "Toggles display of active modules", "Miscellaneous"), ConfigurableModule {
+class ActiveMods : Module("ActiveMods", "Toggles display of active modules", ModuleCategory.MISC), ConfigurableModule {
 
     private val enableRGB: ModuleSettings
     private val settings: MutableList<ModuleSettings>

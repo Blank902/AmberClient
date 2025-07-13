@@ -57,7 +57,7 @@ public class ClickGUI extends Screen {
 
     private void initCategories() {
         Map<String, List<Module>> catMap = new HashMap<>();
-        ModuleManager.getInstance().getModules().forEach(m -> catMap.computeIfAbsent(m.getCategory(), k -> new ArrayList<>()).add(m));
+        ModuleManager.getInstance().getModules().forEach(m -> catMap.computeIfAbsent(String.valueOf(m.getCategory()), k -> new ArrayList<>()).add(m));
 
         catMap.entrySet().stream()
                 .filter(entry -> !entry.getKey().equals("Miscellaneous"))

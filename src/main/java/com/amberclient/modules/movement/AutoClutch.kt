@@ -2,6 +2,7 @@ package com.amberclient.modules.movement
 
 import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.Module
+import com.amberclient.utils.module.ModuleCategory
 import com.amberclient.utils.module.ModuleSettings
 import net.minecraft.block.Block
 import net.minecraft.block.SnowBlock
@@ -21,7 +22,7 @@ import java.lang.Math.toRadians
 import kotlin.math.*
 import kotlin.random.Random
 
-class AutoClutch : Module("AutoClutch", "Automatically clutches (blocks disappear sometimes)", "Movement"), ConfigurableModule {
+class AutoClutch : Module("AutoClutch", "Automatically clutches (blocks disappear sometimes)", ModuleCategory.MOVEMENT), ConfigurableModule {
 
     companion object {
         const val MOD_ID = "amberclient-autoclutch"

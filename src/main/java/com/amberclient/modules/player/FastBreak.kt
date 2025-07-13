@@ -2,11 +2,12 @@ package com.amberclient.modules.player
 
 import com.amberclient.utils.module.ConfigurableModule
 import com.amberclient.utils.module.Module
+import com.amberclient.utils.module.ModuleCategory
 import com.amberclient.utils.module.ModuleSettings
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
-class FastBreak : Module("FastBreak", "Breaks blocks way faster", "Player"), ConfigurableModule {
+class FastBreak : Module("FastBreak", "Breaks blocks way faster", ModuleCategory.PLAYER), ConfigurableModule {
     companion object {
         const val MOD_ID = "amberclient-fastbreak"
         val LOGGER: Logger = LogManager.getLogger(MOD_ID)
