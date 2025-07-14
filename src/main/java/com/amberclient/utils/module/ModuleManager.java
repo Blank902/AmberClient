@@ -61,6 +61,7 @@ public class ModuleManager {
         registerModule(new MacroRecorder());
         registerModule(new AutoPotion());
         registerModule(new AntiHunger());
+        registerModule(new FakeLag());
 
         for (Module module : modules) {
             EventManager.getInstance().register(module);

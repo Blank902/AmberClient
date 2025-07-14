@@ -27,7 +27,6 @@ class AutoPotion : Module("AutoPotion", "Automatically throws healing potions at
 
     private val mc = getClient()
     private var lastHealTime = 0L
-    private var originalSlot = -1
 
     init {
         instance = this
@@ -35,7 +34,6 @@ class AutoPotion : Module("AutoPotion", "Automatically throws healing potions at
 
     override fun onTick() {
         val player = mc.player ?: return
-        val world = mc.world ?: return
 
         if (System.currentTimeMillis() - lastHealTime < delay.doubleValue) return
 
