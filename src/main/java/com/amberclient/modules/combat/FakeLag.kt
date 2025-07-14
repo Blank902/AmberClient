@@ -1,50 +1,199 @@
 package com.amberclient.modules.combat
 
-import com.amberclient.utils.module.ConfigurableModule
+import com.amberclient.events.core.EventListener
+import com.amberclient.events.core.EventManager
+import com.amberclient.events.network.PacketEvent
 import com.amberclient.utils.module.Module
 import com.amberclient.utils.module.ModuleCategory
 import com.amberclient.utils.module.ModuleSettings
-import net.minecraft.network.packet.Packet
-import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket
-import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
-import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket
-import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket
-import net.minecraft.network.packet.c2s.play.UpdateSignC2SPacket
+import com.amberclient.utils.module.ConfigurableModule
+import net.minecraft.client.MinecraftClient
+import net.minecraft.network.packet.c2s.play.*
+import java.util.concurrent.ConcurrentLinkedQueue
 
-class FakeLag : Module("FakeLag", "Holds back packets to prevent you from being hit by an enemy", ModuleCategory.COMBAT), ConfigurableModule {
+class FakeLag : Module("FakeLag", "Holds back packets to prevent you from being hit", ModuleCategory.COMBAT), ConfigurableModule {
 
-    // Settings
-    private val range = ModuleSettings("Range", "Range settings", 3.5, 0.0, 10.0, 0.1)
-    private val delay = ModuleSettings("Delay", "Delay in milliseconds", 450, 0, 1000)
-    private val recoilTime = ModuleSettings("RecoilTime", "Recoil time in milliseconds", 250, 0, 1000)
-    private val mode = ModuleSettings("Mode", "FakeLag mode", Mode.DYNAMIC)
-    private val flushOn = ModuleSettings("FlushOn", "Flush on packet types", setOf(FlushOn.ENTITY_INTERACT))
+    private val delay = ModuleSettings("Delay (ms)", "Delay time for packet delay", 200.0, 50.0, 1000.0, 10.0)
+    private val onlyMovement = ModuleSettings("Only Movement", "Delays motion packets only", true)
+    private val maxPackets = ModuleSettings("Max Packets", "Maximum number of packages to retain", 20.0, 5.0, 100.0, 1.0)
+    private val pulse = ModuleSettings("Pulse", "Sends packets in bursts", false)
+    private val pulseDelay = ModuleSettings("Pulse Delay (ms)", "Delay between bursts", 1000.0, 500.0, 5000.0, 50.0)
 
-    enum class Mode {
-        DYNAMIC,
-        STATIC
+    private val settings: MutableList<ModuleSettings> = mutableListOf<ModuleSettings>().apply {
+        add(delay)
+        add(onlyMovement)
+        add(maxPackets)
+        add(pulse)
+        add(pulseDelay)
     }
 
-    enum class FlushOn(
-        val choiceName: String,
-        val testPacket: (packet: Packet<*>?) -> Boolean
-    ) {
-        ENTITY_INTERACT("EntityInteract", {
-            it is PlayerInteractEntityC2SPacket
-                    || it is HandSwingC2SPacket
-        }),
-        BLOCK_INTERACT("BlockInteract", {
-            it is PlayerInteractBlockC2SPacket
-                    || it is UpdateSignC2SPacket
-        }),
-        ACTION("Action", {
-            it is PlayerActionC2SPacket
-        })
+    private val packetQueue = ConcurrentLinkedQueue<QueuedPacket>()
+    private var lastPulseTime = 0L
+    private var tickCounter = 0
+
+    companion object {
+        @JvmStatic
+        private var bypassPacketSend = false
+
+        @JvmStatic
+        fun isBypassing(): Boolean = bypassPacketSend
     }
 
-    override fun getSettings(): List<ModuleSettings> {
-        return listOf(
-            range, delay, recoilTime, mode, flushOn
-        )
+    data class QueuedPacket(
+        val packet: Any,
+        val timestamp: Long,
+        val connection: net.minecraft.network.ClientConnection
+    )
+
+    override fun onEnable() {
+        super.onEnable()
+        EventManager.getInstance().register(this)
+        packetQueue.clear()
+        lastPulseTime = System.currentTimeMillis()
+        tickCounter = 0
+    }
+
+    override fun onDisable() {
+        super.onDisable()
+        EventManager.getInstance().unregister(this)
+
+        flushAllPackets()
+        packetQueue.clear()
+    }
+
+    override fun onTick() {
+        super.onTick()
+
+        val mc = MinecraftClient.getInstance()
+        if (mc.player == null || mc.world == null) return
+
+        tickCounter++
+
+        if (tickCounter % 20 == 0) {
+            cleanupOldPackets()
+        }
+
+        if (tickCounter % 3 == 0) {
+            processPackets()
+        }
+    }
+
+    @EventListener
+    fun onPacketSend(event: PacketEvent.Send) {
+        if (!isEnabled()) return
+
+        val mc = MinecraftClient.getInstance()
+        if (mc.player == null || mc.world == null) return
+
+        val packet = event.packet
+
+        if (shouldDelayPacket(packet)) {
+            if (packetQueue.size >= maxPackets.integerValue) {
+                packetQueue.poll()
+            }
+
+            packetQueue.offer(QueuedPacket(packet, System.currentTimeMillis(), event.connection))
+
+            event.cancel()
+        }
+    }
+
+    private fun shouldDelayPacket(packet: Any): Boolean {
+        if (onlyMovement.booleanValue) {
+            return packet is PlayerMoveC2SPacket
+        }
+
+        return packet is PlayerMoveC2SPacket ||
+                packet is PlayerActionC2SPacket ||
+                packet is PlayerInteractBlockC2SPacket ||
+                packet is PlayerInteractEntityC2SPacket ||
+                packet is PlayerInteractItemC2SPacket ||
+                packet is HandSwingC2SPacket ||
+                packet is PlayerInputC2SPacket
+    }
+
+    private fun processPackets() {
+        if (!isEnabled()) return
+
+        val mc = MinecraftClient.getInstance()
+        if (mc.player == null || mc.world == null) return
+
+        val currentTime = System.currentTimeMillis()
+
+        if (pulse.booleanValue) {
+            if (currentTime - lastPulseTime >= pulseDelay.integerValue) {
+                flushAllPackets()
+                lastPulseTime = currentTime
+            }
+        } else {
+            val packetsToSend = mutableListOf<QueuedPacket>()
+
+            val iterator = packetQueue.iterator()
+            while (iterator.hasNext()) {
+                val queuedPacket = iterator.next()
+                if (currentTime - queuedPacket.timestamp >= delay.integerValue) {
+                    packetsToSend.add(queuedPacket)
+                    iterator.remove()
+                }
+            }
+
+            packetsToSend.forEach { queuedPacket ->
+                sendPacketDirectly(queuedPacket)
+            }
+        }
+    }
+
+    private fun flushAllPackets() {
+        val packetsToSend = mutableListOf<QueuedPacket>()
+
+        while (packetQueue.isNotEmpty()) {
+            packetQueue.poll()?.let { packetsToSend.add(it) }
+        }
+
+        packetsToSend.forEach { queuedPacket ->
+            sendPacketDirectly(queuedPacket)
+        }
+    }
+
+    private fun sendPacketDirectly(queuedPacket: QueuedPacket) {
+        try {
+            bypassPacketSend = true
+
+            val connection = queuedPacket.connection
+            val packet = queuedPacket.packet as net.minecraft.network.packet.Packet<*>
+
+            connection.send(packet)
+
+        } catch (_: Exception) {
+            try {
+                val mc = MinecraftClient.getInstance()
+                mc.networkHandler?.sendPacket(queuedPacket.packet as net.minecraft.network.packet.Packet<*>)
+            } catch (_: Exception) { }
+        } finally {
+            bypassPacketSend = false
+        }
+    }
+
+    private fun cleanupOldPackets() {
+        val currentTime = System.currentTimeMillis()
+        val maxAge = 5000L
+
+        val iterator = packetQueue.iterator()
+        while (iterator.hasNext()) {
+            val queuedPacket = iterator.next()
+            if (currentTime - queuedPacket.timestamp > maxAge) {
+                iterator.remove()
+            }
+        }
+    }
+
+    fun getQueueSize(): Int = packetQueue.size
+
+    fun getDelayMs(): Int = delay.integerValue
+
+    override fun getSettings(): List<ModuleSettings> = settings
+
+    override fun toString(): String {
+        return "${name}: Queue: ${getQueueSize()}, Delay: ${getDelayMs()}ms"
     }
 }

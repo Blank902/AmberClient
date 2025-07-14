@@ -17,7 +17,6 @@ public class EventManager {
     private final List<PreVelocityListener> preVelocityListeners = new ArrayList<>();
     private final List<PostVelocityListener> postVelocityListeners = new ArrayList<>();
 
-    // Ajout des nouveaux types d'événements
     private final List<PacketSendListener> packetSendListeners = new ArrayList<>();
     private final List<SendMovementPacketsListener> sendMovementPacketsListeners = new ArrayList<>();
 
@@ -38,11 +37,23 @@ public class EventManager {
         registeredObjects.add(obj);
 
         Method[] methods = obj.getClass().getDeclaredMethods();
+        List<Method> eventMethods = new ArrayList<>();
+
         for (Method method : methods) {
-            if (method.isAnnotationPresent(EventHandler.class)) {
+            if (method.isAnnotationPresent(EventListener.class)) {
                 method.setAccessible(true);
-                registerMethodAsListener(obj, method);
+                eventMethods.add(method);
             }
+        }
+
+        eventMethods.sort((m1, m2) -> {
+            int priority1 = m1.getAnnotation(EventListener.class).priority();
+            int priority2 = m2.getAnnotation(EventListener.class).priority();
+            return Integer.compare(priority2, priority1);
+        });
+
+        for (Method method : eventMethods) {
+            registerMethodAsListener(obj, method);
         }
     }
 
@@ -63,34 +74,35 @@ public class EventManager {
     }
 
     private boolean isFromObject(Object listener, Object obj) {
-        return listener instanceof MethodListener && ((MethodListener) listener).getOwner() == obj;
+        return listener instanceof MethodListener && ((MethodListener) listener).owner() == obj;
     }
 
     private void registerMethodAsListener(Object obj, Method method) {
         Class<?>[] paramTypes = method.getParameterTypes();
+        EventListener annotation = method.getAnnotation(EventListener.class);
 
         if (paramTypes.length == 0) {
             String methodName = method.getName();
             if (methodName.contains("PreMotion") || methodName.contains("preMotion")) {
-                preMotionListeners.add(new MethodListener(obj, method)::invokePreMotion);
+                preMotionListeners.add(new MethodListener(obj, method, annotation));
             } else if (methodName.contains("PostMotion") || methodName.contains("postMotion")) {
-                postMotionListeners.add(new MethodListener(obj, method)::invokePostMotion);
+                postMotionListeners.add(new MethodListener(obj, method, annotation));
             }
         } else if (paramTypes.length == 1) {
             Class<?> paramType = paramTypes[0];
 
             if (Packet.class.isAssignableFrom(paramType)) {
-                packetReceiveListeners.add(new MethodListener(obj, method)::invokePacketReceive);
+                packetReceiveListeners.add(new MethodListener(obj, method, annotation));
             } else if (paramType.getSimpleName().contains("PreVelocity")) {
-                preVelocityListeners.add(new MethodListener(obj, method)::invokePreVelocity);
+                preVelocityListeners.add(new MethodListener(obj, method, annotation));
             } else if (paramType.getSimpleName().contains("PostVelocity")) {
-                postVelocityListeners.add(new MethodListener(obj, method)::invokePostVelocity);
+                postVelocityListeners.add(new MethodListener(obj, method, annotation));
             }
             // Ajout des nouveaux types d'événements
             else if (paramType == PacketEvent.Send.class || paramType.getSimpleName().contains("PacketEvent")) {
-                packetSendListeners.add(new MethodListener(obj, method)::invokePacketSend);
+                packetSendListeners.add(new MethodListener(obj, method, annotation));
             } else if (paramType == SendMovementPacketsEvent.Pre.class || paramType.getSimpleName().contains("SendMovementPackets")) {
-                sendMovementPacketsListeners.add(new MethodListener(obj, method)::invokeSendMovementPackets);
+                sendMovementPacketsListeners.add(new MethodListener(obj, method, annotation));
             }
         }
     }
@@ -161,9 +173,13 @@ public class EventManager {
         }
     }
 
-    // Nouvelles méthodes pour les événements PacketSend et SendMovementPackets
     public void firePacketSend(PacketEvent.Send event) {
         for (PacketSendListener listener : new ArrayList<>(packetSendListeners)) {
+            if (event.isCancelled() && listener instanceof MethodListener methodListener) {
+                if (!methodListener.receiveCancelled()) {
+                    continue;
+                }
+            }
             listener.onPacketSend(event);
         }
     }
@@ -174,7 +190,6 @@ public class EventManager {
         }
     }
 
-    // Nouvelles interfaces pour les listeners
     public interface PacketSendListener {
         void onPacketSend(PacketEvent.Send event);
     }
@@ -183,108 +198,106 @@ public class EventManager {
         void onSendMovementPackets(SendMovementPacketsEvent.Pre event);
     }
 
-    private static class MethodListener implements PreMotionListener, PostMotionListener, PacketReceiveListener, PreVelocityListener, PostVelocityListener, PacketSendListener, SendMovementPacketsListener {
-        private final Object owner;
-        private final Method method;
+    private record MethodListener(Object owner, Method method,
+                                  EventListener annotation) implements PreMotionListener, PostMotionListener, PacketReceiveListener, PreVelocityListener, PostVelocityListener, PacketSendListener, SendMovementPacketsListener {
 
-        public MethodListener(Object owner, Method method) {
-            this.owner = owner;
-            this.method = method;
-        }
+        public int getPriority() {
+                return annotation.priority();
+            }
 
-        public Object getOwner() {
-            return owner;
-        }
+            public boolean receiveCancelled() {
+                return annotation.receiveCancelled();
+            }
 
-        public void invokePreMotion() {
-            try {
-                method.invoke(owner);
-            } catch (Exception e) {
-                System.err.println("Error invoking PreMotion event handler: " + e.getMessage());
+            public void invokePreMotion() {
+                try {
+                    method.invoke(owner);
+                } catch (Exception e) {
+                    System.err.println("Error invoking PreMotion event handler: " + e.getMessage());
+                }
+            }
+
+            public void invokePostMotion() {
+                try {
+                    method.invoke(owner);
+                } catch (Exception e) {
+                    System.err.println("Error invoking PostMotion event handler: " + e.getMessage());
+                }
+            }
+
+            public void invokePacketReceive(Packet<?> packet) {
+                try {
+                    method.invoke(owner, packet);
+                } catch (Exception e) {
+                    System.err.println("Error invoking PacketReceive event handler: " + e.getMessage());
+                }
+            }
+
+            public void invokePreVelocity(PreVelocityEvent event) {
+                try {
+                    method.invoke(owner, event);
+                } catch (Exception e) {
+                    System.err.println("Error invoking PreVelocity event handler: " + e.getMessage());
+                }
+            }
+
+            public void invokePostVelocity(PostVelocityEvent event) {
+                try {
+                    method.invoke(owner, event);
+                } catch (Exception e) {
+                    System.err.println("Error invoking PostVelocity event handler: " + e.getMessage());
+                }
+            }
+
+            public void invokePacketSend(PacketEvent.Send event) {
+                try {
+                    method.invoke(owner, event);
+                } catch (Exception e) {
+                    System.err.println("Error invoking PacketSend event handler: " + e.getMessage());
+                }
+            }
+
+            public void invokeSendMovementPackets(SendMovementPacketsEvent.Pre event) {
+                try {
+                    method.invoke(owner, event);
+                } catch (Exception e) {
+                    System.err.println("Error invoking SendMovementPackets event handler: " + e.getMessage());
+                }
+            }
+
+            @Override
+            public void onPreMotion() {
+                invokePreMotion();
+            }
+
+            @Override
+            public void onPostMotion() {
+                invokePostMotion();
+            }
+
+            @Override
+            public void onPacketReceive(Packet<?> packet) {
+                invokePacketReceive(packet);
+            }
+
+            @Override
+            public void onPreVelocity(PreVelocityEvent event) {
+                invokePreVelocity(event);
+            }
+
+            @Override
+            public void onPostVelocity(PostVelocityEvent event) {
+                invokePostVelocity(event);
+            }
+
+            @Override
+            public void onPacketSend(PacketEvent.Send event) {
+                invokePacketSend(event);
+            }
+
+            @Override
+            public void onSendMovementPackets(SendMovementPacketsEvent.Pre event) {
+                invokeSendMovementPackets(event);
             }
         }
-
-        public void invokePostMotion() {
-            try {
-                method.invoke(owner);
-            } catch (Exception e) {
-                System.err.println("Error invoking PostMotion event handler: " + e.getMessage());
-            }
-        }
-
-        public void invokePacketReceive(Packet<?> packet) {
-            try {
-                method.invoke(owner, packet);
-            } catch (Exception e) {
-                System.err.println("Error invoking PacketReceive event handler: " + e.getMessage());
-            }
-        }
-
-        public void invokePreVelocity(PreVelocityEvent event) {
-            try {
-                method.invoke(owner, event);
-            } catch (Exception e) {
-                System.err.println("Error invoking PreVelocity event handler: " + e.getMessage());
-            }
-        }
-
-        public void invokePostVelocity(PostVelocityEvent event) {
-            try {
-                method.invoke(owner, event);
-            } catch (Exception e) {
-                System.err.println("Error invoking PostVelocity event handler: " + e.getMessage());
-            }
-        }
-
-        public void invokePacketSend(PacketEvent.Send event) {
-            try {
-                method.invoke(owner, event);
-            } catch (Exception e) {
-                System.err.println("Error invoking PacketSend event handler: " + e.getMessage());
-            }
-        }
-
-        public void invokeSendMovementPackets(SendMovementPacketsEvent.Pre event) {
-            try {
-                method.invoke(owner, event);
-            } catch (Exception e) {
-                System.err.println("Error invoking SendMovementPackets event handler: " + e.getMessage());
-            }
-        }
-
-        @Override
-        public void onPreMotion() {
-            invokePreMotion();
-        }
-
-        @Override
-        public void onPostMotion() {
-            invokePostMotion();
-        }
-
-        @Override
-        public void onPacketReceive(Packet<?> packet) {
-            invokePacketReceive(packet);
-        }
-
-        @Override
-        public void onPreVelocity(PreVelocityEvent event) {
-            invokePreVelocity(event);
-        }
-
-        @Override
-        public void onPostVelocity(PostVelocityEvent event) {
-            invokePostVelocity(event);
-        }
-
-        @Override
-        public void onPacketSend(PacketEvent.Send event) {
-            invokePacketSend(event);
-        }
-
-        @Override
-        public void onSendMovementPackets(SendMovementPacketsEvent.Pre event) {
-            invokeSendMovementPackets(event);
-        }
-    }
 }

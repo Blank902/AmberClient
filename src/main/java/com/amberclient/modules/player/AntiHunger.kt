@@ -6,7 +6,7 @@ import com.amberclient.utils.module.ModuleSettings
 import com.amberclient.events.player.SendMovementPacketsEvent
 import com.amberclient.events.network.PacketEvent
 import com.amberclient.mixins.PlayerMoveC2SPacketAccessor
-import com.amberclient.events.core.EventHandler
+import com.amberclient.events.core.EventListener
 import com.amberclient.utils.module.ModuleCategory
 import net.minecraft.client.MinecraftClient
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket
@@ -32,7 +32,7 @@ class AntiHunger : Module("AntiHunger", "Reduces (does NOT remove) hunger consum
         }
     }
 
-    @EventHandler
+    @EventListener
     private fun onSendPacket(event: PacketEvent.Send) {
         if (ignorePacket && event.packet is PlayerMoveC2SPacket) {
             ignorePacket = false
@@ -60,7 +60,7 @@ class AntiHunger : Module("AntiHunger", "Reduces (does NOT remove) hunger consum
         }
     }
 
-    @EventHandler
+    @EventListener
     private fun onTick(event: SendMovementPacketsEvent.Pre) {
         val player = client.player ?: return
 
