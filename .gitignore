@@ -11,6 +11,7 @@
 .mtj.tmp/
 
 # Package Files #
+*.jar
 *.war
 *.nar
 *.ear
@@ -22,9 +23,53 @@
 hs_err_pid*
 replay_pid*
 
-*.html
-
-discord.properties
+# Gradle
 .gradle/
-run/
 build/
+gradle-app.setting
+!gradle-wrapper.jar
+
+# IDE files
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+bin/
+out/
+
+# Runtime and development
+run/
+logs/
+mods/
+config/
+saves/
+screenshots/
+resourcepacks/
+shaderpacks/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Discord integration
+discord.properties
+
+# Configuration files (but keep examples)
+config/nexusclient/
+!config/nexusclient/theme.json.example
+
+# Temporary files
+*.tmp
+*.temp
+*.html
+*.backup
